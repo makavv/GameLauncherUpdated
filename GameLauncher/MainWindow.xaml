@@ -16,9 +16,9 @@
         
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Launcher" Height="866" Width="1540"
+        Title="Launcher" Height="753" Width="1142"
         ResizeMode="NoResize" AllowsTransparency="True" WindowStyle="None" Icon="/Icon.ico" BorderThickness="2"
-    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" Foreground="#7F000000" Background="{x:Null}" BorderBrush="#00000000" Loaded="MainWindow_Loaded"
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" Foreground="#7F000000" Background="{x:Null}" BorderBrush="#00000000" Loaded="MainWindow_Loaded" RenderTransformOrigin="0.5,0.5"
 
         >
 
@@ -68,9 +68,17 @@
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
     </Window.Resources>
-    <Grid x:Name="Content" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <Window.RenderTransform>
+        <TransformGroup>
+            <ScaleTransform ScaleX="1" ScaleY="1"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+        </TransformGroup>
+    </Window.RenderTransform>
+    <Grid x:Name="Content" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalAlignment="Left">
 
-        <Grid x:Name="grid" Height="866" VerticalAlignment="Top" Background="#7C000000" HorizontalAlignment="Center" Width="1540">
+        <Grid x:Name="grid" Height="866" VerticalAlignment="Top" Background="#7C000000" HorizontalAlignment="Center" Width="1148">
 
             <Image x:Name="Icon_Blur" Stretch="Uniform" 
                         Source="/Resources/Images/Examples/example_icon_game_launcher.png" 
@@ -188,7 +196,7 @@
                         Click="ButtonClose_Click" FontSize="18" Margin="8,0,0,0" Width="40"/>
                 </StackPanel>
             </Grid>
-            <StackPanel x:Name="Menu_Games_Selection" Height="64" Margin="42,60,58,0" MouseDown="Topside_MouseDown" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Disabled" Orientation="Horizontal" >
+            <StackPanel x:Name="Menu_Games_Selection" Height="64" Margin="42,60,0,0" MouseDown="Topside_MouseDown" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Disabled" Orientation="Horizontal" HorizontalAlignment="Left" Width="1101" >
                 <StackPanel.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="Margin" Value="0,0,10,0"/>
@@ -218,7 +226,7 @@
             <Grid x:Name="Patch_and_News_Content" Margin="0,129,0,0">
                 <StackPanel Margin="0,0,58,0" Orientation="Horizontal">
 
-                    <Grid x:Name="Left_Panel" ScrollViewer.VerticalScrollBarVisibility="Disabled" Width="310">
+                    <Grid x:Name="Left_Panel" ScrollViewer.VerticalScrollBarVisibility="Disabled" Width="310" HorizontalAlignment="Left">
                         <Grid x:Name="Left_Panel_Container" Margin="20,0,20,20" VerticalAlignment="Center">
                             <Image x:Name="Logo" Stretch="Uniform" 
                                     RenderOptions.BitmapScalingMode="HighQuality"
@@ -228,22 +236,8 @@
                                 </Image.Effect>
                             </Image>
                             <StackPanel x:Name="Left_Panel_Content" Margin="0,185,0,0" VerticalAlignment="Bottom">
-                                <StackPanel Orientation="Vertical">
-                                    <StackPanel Width="252">
-                                        <StackPanel x:Name="Links" Orientation="Vertical" VerticalAlignment="Top">
-                                            <TextBlock x:Name="lbl_Webpage"
-                                                FontFamily="Fonts/#Dosis"
-                                                FontSize="18" FontWeight="Regular" Margin="0,0,0,5" Cursor="Hand" ToolTip="Open external link" Text="🔗 Webpage" Style="{DynamicResource MainNavigationTextStyle}" MouseDown="lbl_Webpage_MouseDown">
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect BlurRadius="4" Opacity="0.25" Direction="-90"/>
-                                                </TextBlock.Effect></TextBlock>
-                                            <TextBlock x:Name="lbl_PatchNotes"
-                                                FontFamily="Fonts/#Dosis"
-                                                FontSize="18" FontWeight="Regular" Margin="0,0,0,5" Cursor="Hand" ToolTip="Open external link" Text="📝 Patch Notes" Style="{DynamicResource MainNavigationTextStyle}" MouseDown="lbl_PatchNotes_MouseDown">
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect BlurRadius="4" Opacity="0.25" Direction="-90"/>
-                                                </TextBlock.Effect></TextBlock>
-                                        </StackPanel>
+                                <StackPanel Orientation="Vertical" Height="564">
+                                    <StackPanel Width="252" VerticalAlignment="Top">
                                         <StackPanel x:Name="Content_Progress" Width="252" Margin="0,20,0,30">
                                             <Grid Height="179" Width="240">
                                                 <xrpb:RadialProgressBar x:Name="overallProgressBar_Background" Value="100"
@@ -430,7 +424,7 @@
 
                     </Grid>
 
-                    <ScrollViewer x:Name="Right_Panel" FontWeight="Bold" VerticalScrollBarVisibility="Disabled" Visibility="Visible" CanContentScroll="False" Width="1169">
+                    <ScrollViewer x:Name="Right_Panel" FontWeight="Bold" VerticalScrollBarVisibility="Disabled" Visibility="Visible" CanContentScroll="False" Width="791" Height="571" VerticalAlignment="Top">
                         <StackPanel x:Name="StackPanel">
                             <StackPanel.Effect>
                                 <DropShadowEffect Opacity="0.1"/>
@@ -454,8 +448,7 @@
 
                             </Grid>
                             <StackPanel x:Name="News_Content" Orientation="Vertical">
-                                
-                                <uc:NewsSlideshowControl x:Name="NewsSlideshow"/>
+                                <uc:SubNewsControl x:Name="SubNewsExample_1" Title="Runtime" Text="The content/text/images of this elements are got from host in runtime" Height="285"/>
                                 <local:FadingScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" FadedEdgeThickness="20" FadedEdgeOpacity="0" FadedEdgeFalloffSpeed="4" Visibility="Visible" Height="240">
                                     <local:FadingScrollViewer.Template>
                                         <ControlTemplate TargetType="{x:Type ScrollViewer}">
@@ -480,7 +473,7 @@
                                     </local:FadingScrollViewer.Template>
                                     <WrapPanel x:Name="Content_Inferior" Orientation="Horizontal" ItemHeight="240" ItemWidth="389" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                                         <WrapPanel.Resources>
-                                            <Style TargetType="uc:SubNewsControl">
+                                            <Style TargetType="{x:Type uc:SubNewsControl}">
                                                 <Setter Property="Margin" Value="0 0 5 5"/>
                                             </Style>
                                         </WrapPanel.Resources>
@@ -492,7 +485,6 @@
                                                 <TranslateTransform X="-0.993"/>
                                             </TransformGroup>
                                         </WrapPanel.RenderTransform>
-                                        <uc:SubNewsControl x:Name="SubNewsExample_1" Title="Runtime" Text="The content/text/images of this elements are got from host in runtime"/>
                                         <uc:SubNewsControl x:Name="SubNewsExample_2" Title="Customizable" Text="You can modify the appearance of this control from SubNewsControl" IsDateVisible="False"/>
                                         <uc:SubNewsControl x:Name="SubNewsExample_3" Title="Runtime" Text="These elements/text/images are loaded in runtime" IsContentVisible="False" IsTitleVisible="False" IsTextVisible="False" IsDateVisible="False"/>
                                     </WrapPanel>

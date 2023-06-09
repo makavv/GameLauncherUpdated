@@ -19,6 +19,7 @@ namespace GameLauncher.Models
         public string? LogoURL { get; set; } = "";
         public string? ColorHEX { get; set; } = "#FFFFFF";
         public string? DefaultLaunchArgs { get; set; } = "";
+
         public bool? LinkOnly { get; set; } = false;
         public bool? IsMultiplayer { get; set; } = false;
         public bool? IsMobile { get; set; } = false;
@@ -36,7 +37,7 @@ namespace GameLauncher.Models
         {
             get
             {
-                if (string.IsNullOrEmpty (_installPath))
+                if (string.IsNullOrEmpty(_installPath))
                 {
                     return DefaultInstallPath;
                 }
@@ -50,7 +51,7 @@ namespace GameLauncher.Models
         public string DefaultLanguage { get; set; } = "en_US";
         public bool UseAdditionalLaunchArgs { get; set; } = false;
         public string AdditionalLaunchArgs { get; set; } = "";
-
+        public string LicenseKey { get; set; } = "";
         public bool IsFavorite { get; set; } = false;
 
 
@@ -63,18 +64,18 @@ namespace GameLauncher.Models
         {
             get
             {
-                return System.IO.Path.Combine (Directory.GetCurrentDirectory (), MainWindow.MAINAPP_SUBDIRECTORY, Title);
+                return System.IO.Path.Combine(Directory.GetCurrentDirectory(), MainWindow.MAINAPP_SUBDIRECTORY, Title);
             }
         }
 
         #region INotifyPropertyChanged Members  
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged (string propertyName)
+        private void OnPropertyChanged(string propertyName)
         {
             if (PropertyChanged != null)
             {
-                PropertyChanged (this, new PropertyChangedEventArgs (propertyName));
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
         #endregion

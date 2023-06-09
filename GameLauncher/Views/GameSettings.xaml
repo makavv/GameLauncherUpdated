@@ -80,6 +80,22 @@
                         </Style>
                     </TextBox.Style>
                 </TextBox>
+                <Label Content="License Key" Foreground="White"/>
+                <TextBox x:Name="LicenseKey" Background="#26FFFFFF" Width="358" Foreground="#7FFFFFFF" BorderBrush="{x:Null}" Height="26" VerticalContentAlignment="Center" HorizontalAlignment="Left" MaxLength ="25">
+                    <TextBox.Style>
+                        <Style TargetType="{x:Type TextBox}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type TextBox}">
+                                        <Border CornerRadius="5" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
             </StackPanel>
 
         </StackPanel>

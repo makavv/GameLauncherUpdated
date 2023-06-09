@@ -193,8 +193,8 @@ namespace GameLauncherCore
         // A custom IEqualityComparer to avoid GC for using enum as key to dictionary
         public class StringIdComparer : IEqualityComparer<LocalizationID>
         {
-            public bool Equals( LocalizationID s1, LocalizationID s2 ) { return s1 == s2; }
-            public int GetHashCode( LocalizationID s ) { return (int) s; }
+            public bool Equals(LocalizationID s1, LocalizationID s2) { return s1 == s2; }
+            public int GetHashCode(LocalizationID s) { return (int)s; }
         }
 
         private static Dictionary<LocalizationID, string> Strings;
@@ -202,93 +202,101 @@ namespace GameLauncherCore
 
         static Localization()
         {
-            Strings = new Dictionary<LocalizationID, string>( new StringIdComparer() );
-            SetCulture( CultureInfo.CurrentCulture );
+            Strings = new Dictionary<LocalizationID, string>(new StringIdComparer());
+            SetCulture(CultureInfo.CurrentCulture);
         }
 
-        public static string Get( LocalizationID key )
+        public static string Get(LocalizationID key)
         {
             string result;
-            if( Strings.TryGetValue( key, out result ) )
+            if (Strings.TryGetValue(key, out result))
                 return result;
 
-            return string.Concat( "__", key.ToString(), "__" );
+            return string.Concat("__", key.ToString(), "__");
         }
 
-        public static string Get( LocalizationID key, object arg0 )
+        public static string Get(LocalizationID key, object arg0)
         {
             string result;
-            if( Strings.TryGetValue( key, out result ) )
-                return string.Format( result, arg0 );
+            if (Strings.TryGetValue(key, out result))
+                return string.Format(result, arg0);
 
-            return string.Concat( "__", key.ToString(), "__" );
+            return string.Concat("__", key.ToString(), "__");
         }
 
-        public static string Get( LocalizationID key, object arg0, object arg1 )
+        public static string Get(LocalizationID key, object arg0, object arg1)
         {
             string result;
-            if( Strings.TryGetValue( key, out result ) )
-                return string.Format( result, arg0, arg1 );
+            if (Strings.TryGetValue(key, out result))
+                return string.Format(result, arg0, arg1);
 
-            return string.Concat( "__", key.ToString(), "__" );
+            return string.Concat("__", key.ToString(), "__");
         }
 
-        public static string Get( LocalizationID key, object arg0, object arg1, object arg2 )
+        public static string Get(LocalizationID key, object arg0, object arg1, object arg2)
         {
             string result;
-            if( Strings.TryGetValue( key, out result ) )
-                return string.Format( result, arg0, arg1, arg2 );
+            if (Strings.TryGetValue(key, out result))
+                return string.Format(result, arg0, arg1, arg2);
 
-            return string.Concat( "__", key.ToString(), "__" );
+            return string.Concat("__", key.ToString(), "__");
         }
 
-        public static string Get( LocalizationID key, params object[] args )
+        public static string Get(LocalizationID key, params object[] args)
         {
             string result;
-            if( Strings.TryGetValue( key, out result ) )
-                return string.Format( result, args );
+            if (Strings.TryGetValue(key, out result))
+                return string.Format(result, args);
 
-            return string.Concat( "__", key.ToString(), "__" );
+            return string.Concat("__", key.ToString(), "__");
         }
 
-        public static bool SetCulture( CultureInfo culture )
+        public static bool SetCulture(CultureInfo culture)
         {
-            return SetLanguage( culture.Name);
+            return SetLanguage(culture.Name);
         }
 
-        public static bool SetLanguage( string languageISOCode )
+        public static bool SetLanguage(string languageISOCode)
         {
-            if( string.IsNullOrEmpty( languageISOCode ) )
+            if (string.IsNullOrEmpty(languageISOCode))
                 return false;
 
             //languageISOCode = languageISOCode.ToLowerInvariant();
-            if( CurrentLanguageISOCode == languageISOCode )
+            if (CurrentLanguageISOCode == languageISOCode)
                 return true;
 
             CurrentLanguageISOCode = languageISOCode;
-            if (languageISOCode == "en_US") {
-                SetLanguageEN_US ();
+            if (languageISOCode == "en_US")
+            {
+                SetLanguageEN_US();
             }
-            else if (languageISOCode == "es_MX") {
-                SetLanguageES_MX ();
+            else if (languageISOCode == "es_MX")
+            {
+                SetLanguageES_MX();
             }
-            else if (languageISOCode == "tr_TR") {
-                SetLanguageTR_TR ();
+            else if (languageISOCode == "tr_TR")
+            {
+                SetLanguageTR_TR();
             }
-            else {
-                SetLanguage ("en_US");
+            else if (languageISOCode == "ru_RU")
+            {
+                SetLanguageRU_RU();
+            }
+            else
+            {
+                SetLanguage("en_US");
                 return false;
             }
 
             return true;
         }
 
-        public static bool SetStrings( Dictionary<LocalizationID, string> strings, string languageISOCode = null )
+        public static bool SetStrings(Dictionary<LocalizationID, string> strings, string languageISOCode = null)
         {
-            if( strings != null && strings.Count > 0 )
+            if (strings != null && strings.Count > 0)
             {
                 Strings = strings;
-                if( !string.IsNullOrEmpty( languageISOCode ) )
+                if (!string.IsNullOrEmpty(languageISOCode))
                     CurrentLanguageISOCode = languageISOCode.ToLowerInvariant();
                 else
                     CurrentLanguageISOCode = null;
@@ -305,8 +313,8 @@ namespace GameLauncherCore
 
             /// Main UI
             // Topside Options
-            Strings [LocalizationID.MainUI_TopOptions_MyAccount] = "My Account";
-            Strings [LocalizationID.MainUI_TopOptions_Forum] = "Forum";
+            Strings[LocalizationID.MainUI_TopOptions_MyAccount] = "My Account";
+            Strings[LocalizationID.MainUI_TopOptions_Forum] = "Forum";
 
             // Library topside
             Strings[LocalizationID.MainUI_Library_Topside_AllGames] = "ALL GAMES";
@@ -326,14 +334,14 @@ namespace GameLauncherCore
 
             // Main Button States
             Strings[LocalizationID.MainUI_MainButtonState_Play] = "Play";
-            Strings [LocalizationID.MainUI_MainButtonState_Retry] = "Retry";
-            Strings [LocalizationID.MainUI_MainButtonState_DownloadingUpdate] = "Downloading update...";
-            Strings [LocalizationID.MainUI_MainButtonState_Downloading] = "Downloading";
-            Strings [LocalizationID.MainUI_MainButtonState_Patching] = "Patching...";
-            Strings [LocalizationID.MainUI_MainButtonState_Checking] = "Checking...";
-            Strings [LocalizationID.MainUI_MainButtonState_ReadyToUpdate] = "Update";
-            Strings [LocalizationID.MainUI_MainButtonState_Install] = "Install";
-            Strings [LocalizationID.MainUI_MainButtonState_IsLinkOnly] = "Open";
+            Strings[LocalizationID.MainUI_MainButtonState_Retry] = "Retry";
+            Strings[LocalizationID.MainUI_MainButtonState_DownloadingUpdate] = "Downloading update...";
+            Strings[LocalizationID.MainUI_MainButtonState_Downloading] = "Downloading";
+            Strings[LocalizationID.MainUI_MainButtonState_Patching] = "Patching...";
+            Strings[LocalizationID.MainUI_MainButtonState_Checking] = "Checking...";
+            Strings[LocalizationID.MainUI_MainButtonState_ReadyToUpdate] = "Update";
+            Strings[LocalizationID.MainUI_MainButtonState_Install] = "Install";
+            Strings[LocalizationID.MainUI_MainButtonState_IsLinkOnly] = "Open";
 
             // Leftside State
             Strings[LocalizationID.MainUI_RegionVersion] = "Region: {0} | Version: {1}";
@@ -341,23 +349,23 @@ namespace GameLauncherCore
 
             // Links 
             Strings[LocalizationID.MainUI_Links_Webpage] = "🔗 Webpage";
-            Strings [LocalizationID.MainUI_Links_PatchNotes] = "📝 Patch Notes";
+            Strings[LocalizationID.MainUI_Links_PatchNotes] = "📝 Patch Notes";
 
             // Game Version Title
-            Strings [LocalizationID.MainUI_EnvironmentTitle] = "ENVIRONMENT";
+            Strings[LocalizationID.MainUI_EnvironmentTitle] = "ENVIRONMENT";
 
             // News
-            Strings [LocalizationID.MainUI_NoNewsAtTheMoment] = "No news at the moment";
-            Strings [LocalizationID.ErrorAtGetNews] = "An error has been occurred loading news";
-            Strings [LocalizationID.Refresh] = "Refresh";
+            Strings[LocalizationID.MainUI_NoNewsAtTheMoment] = "No news at the moment";
+            Strings[LocalizationID.ErrorAtGetNews] = "An error has been occurred loading news";
+            Strings[LocalizationID.Refresh] = "Refresh";
 
             /// Settings
-            Strings [LocalizationID.Settings] = "Settings";
-            Strings [LocalizationID.Settings_MainOptions_Launcher] = "Launcher";
+            Strings[LocalizationID.Settings] = "Settings";
+            Strings[LocalizationID.Settings_MainOptions_Launcher] = "Launcher";
             Strings[LocalizationID.Settings_MainOptions_Downloads] = "Downloads";
-            Strings [LocalizationID.Settings_MainOptions_About] = "About";
+            Strings[LocalizationID.Settings_MainOptions_About] = "About";
             Strings[LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle] = "Launcher Settings";
-            Strings [LocalizationID.Settings_LauncherSettings_UILanguage] = "UI Language";
+            Strings[LocalizationID.Settings_LauncherSettings_UILanguage] = "UI Language";
             Strings[LocalizationID.Settings_LauncherSettings_OnAppLaunch] = "On App Launch";
             Strings[LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Open] = "Keep launcher open";
             Strings[LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Minimize] = "Minimize launcher";
@@ -371,10 +379,10 @@ namespace GameLauncherCore
 
 
             Strings[LocalizationID.Settings_About_AboutSettingsTitle] = "About Game Launcher";
-            Strings [LocalizationID.Settings_About_GetGameLauncher] = "Get Game Launcher";
+            Strings[LocalizationID.Settings_About_GetGameLauncher] = "Get Game Launcher";
 
-            Strings [LocalizationID.TERMS_OF_SERVICE] = "TERMS OF SERVICE";
-            Strings [LocalizationID.PRIVACY_POLICY] = "PRIVACY NOTICE";
+            Strings[LocalizationID.TERMS_OF_SERVICE] = "TERMS OF SERVICE";
+            Strings[LocalizationID.PRIVACY_POLICY] = "PRIVACY NOTICE";
 
             // Game Settings Dropdown
             Strings[LocalizationID.GameSettingsDropdown_Repair] = "Repair";
@@ -485,15 +493,184 @@ namespace GameLauncherCore
             Strings[LocalizationID.XDownloadLinksAreUpdatedSuccessfully] = "{0}/{1} download links are updated successfully";
             Strings[LocalizationID.XFilesUpdatedSuccessfully] = "{0}/{1} files updated successfully";
         }
+        private static void SetLanguageRU_RU()
+        {
+            Strings.Clear();
 
+            /// Main UI
+            // Topside Options
+            Strings[LocalizationID.MainUI_TopOptions_MyAccount] = "Мой аккаунт";
+            Strings[LocalizationID.MainUI_TopOptions_Forum] = "Форум";
+
+            // Library topside
+            Strings[LocalizationID.MainUI_Library_Topside_AllGames] = "ВСЕ ИГРЫ";
+            Strings[LocalizationID.MainUI_Library_Topside_Favorites] = "ИЗБРАННОЕ";
+
+            Strings[LocalizationID.MainUI_Library_AllGames] = "Все игры";
+            Strings[LocalizationID.MainUI_Library_FreeToPlay] = "Бесплатные игры";
+            Strings[LocalizationID.MainUI_Library_Multiplayer] = "Многопользовательские";
+            Strings[LocalizationID.MainUI_Library_MacOS] = "MacOS";
+            Strings[LocalizationID.MainUI_Library_Mobile] = "Мобильные";
+            Strings[LocalizationID.MainUI_Library_Installed] = "Установленные";
+            Strings[LocalizationID.MainUI_Library_Favorites] = "Избранное";
+
+            // Поисковая строка
+            Strings[LocalizationID.SearchBar_Placeholder] = "Поиск...";
+
+            // Состояния основной кнопки
+            Strings[LocalizationID.MainUI_MainButtonState_Play] = "Играть";
+            Strings[LocalizationID.MainUI_MainButtonState_Retry] = "Повторить";
+            Strings[LocalizationID.MainUI_MainButtonState_DownloadingUpdate] = "Загрузка обновления...";
+            Strings[LocalizationID.MainUI_MainButtonState_Downloading] = "Загрузка";
+            Strings[LocalizationID.MainUI_MainButtonState_Patching] = "Установка...";
+            Strings[LocalizationID.MainUI_MainButtonState_Checking] = "Проверка...";
+            Strings[LocalizationID.MainUI_MainButtonState_ReadyToUpdate] = "Обновить";
+            Strings[LocalizationID.MainUI_MainButtonState_Install] = "Установить";
+            Strings[LocalizationID.MainUI_MainButtonState_IsLinkOnly] = "Открыть";
+
+            // Состояние левой панели
+            Strings[LocalizationID.MainUI_RegionVersion] = "Регион: {0} | Версия: {1}";
+            Strings[LocalizationID.MainUI_Version] = "Версия: {0}";
+
+            // Ссылки
+            Strings[LocalizationID.MainUI_Links_Webpage] = "🔗 Веб-страница";
+            Strings[LocalizationID.MainUI_Links_PatchNotes] = "📝 Заметки о патче";
+
+            // Заголовок версии игры
+            Strings[LocalizationID.MainUI_EnvironmentTitle] = "ОКРУЖЕНИЕ";
+
+            // Новости
+            Strings[LocalizationID.MainUI_NoNewsAtTheMoment] = "Новостей пока нет";
+            Strings[LocalizationID.ErrorAtGetNews] = "Ошибка при загрузке новостей";
+            Strings[LocalizationID.Refresh] = "Обновить";
+
+            // Настройки
+            Strings[LocalizationID.Settings] = "Настройки";
+            Strings[LocalizationID.Settings_MainOptions_Launcher] = "Лаунчер";
+            Strings[LocalizationID.Settings_MainOptions_Downloads] = "Загрузки";
+            Strings[LocalizationID.Settings_MainOptions_About] = "О программе";
+            Strings[LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle] = "Настройки лаунчера";
+            Strings[LocalizationID.Settings_LauncherSettings_UILanguage] = "Язык интерфейса";
+            Strings[LocalizationID.Settings_LauncherSettings_OnAppLaunch] = "При запуске приложения";
+            Strings[LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Open] = "Оставить лаунчер открытым";
+            Strings[LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Minimize] = "Свернуть лаунчер";
+            Strings[LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Close] = "Закрыть лаунчер";
+            Strings[LocalizationID.Settings_DownloadsSettings_DownloadsSettingsTitle] = "Настройки загрузки";
+            Strings[LocalizationID.Settings_DownloadsSettings_DefaultInstallLocation] = "Стандартное место установки";
+            Strings[LocalizationID.Settings_DownloadsSettings_CustomInstallLocation] = "Пользовательское место установки";
+            Strings[LocalizationID.Settings_DownloadsSettings_UseDefaultInstallLocation] = "Использовать стандартное место установки";
+            Strings[LocalizationID.Settings_DownloadsSettings_ChangeLocation] = "Изменить местоположение";
+
+            Strings[LocalizationID.Settings_About_AboutSettingsTitle] = "О лаунчере игр";
+            Strings[LocalizationID.Settings_About_GetGameLauncher] = "Получить лаунчер игр";
+
+            Strings[LocalizationID.TERMS_OF_SERVICE] = "УСЛОВИЯ ПОЛЬЗОВАНИЯ";
+            Strings[LocalizationID.PRIVACY_POLICY] = "УВЕДОМЛЕНИЕ О КОНФИДЕНЦИАЛЬНОСТИ";
+
+            // Выпадающий список настроек игры
+            Strings[LocalizationID.GameSettingsDropdown_Repair] = "Восстановить";
+            Strings[LocalizationID.GameSettingsDropdown_ShowInExplorer] = "Показать в проводнике";
+            Strings[LocalizationID.GameSettingsDropdown_GameSettings] = "Настройки игры";
+            Strings[LocalizationID.GameSettingsDropdown_LauncherSettings] = "Настройки лаунчера";
+            Strings[LocalizationID.GameSettingsDropdown_Uninstall] = "Удалить";
+
+            // Окно настроек игры
+            Strings[LocalizationID.GameSettings_InstallLocation] = "Место установки";
+            Strings[LocalizationID.GameSettings_EnableAutomaticUpdates] = "Включить автоматическое обновление";
+            Strings[LocalizationID.GameSettings_UseAdditionalLaunchParameters] = "Использовать дополнительные параметры запуска";
+            Strings[LocalizationID.GameSettings_Installed] = "Установлено";
+
+            // Окно удаления
+            Strings[LocalizationID.Uninstall_UninstallText] = "Вы уверены, что хотите удалить {0}? Это приведет к удалению всех файлов игры";
+            Strings[LocalizationID.Uninstall_Yes] = "Да, удалить";
+            Strings[LocalizationID.Uninstall_No] = "Нет";
+
+            Strings[LocalizationID.CheckingForUpdates] = "Проверка обновлений...";
+            Strings[LocalizationID.CheckingIfFilesAreUpToDate] = "Проверка актуальности файлов...";
+            Strings[LocalizationID.CompressingFilesToDestination] = "Сжатие файлов сборки для сохранения...";
+            Strings[LocalizationID.CompressingPatchIntoOneFile] = "Сжатие инкрементного патча в один файл...";
+            Strings[LocalizationID.CompressingXToY] = "Сжатие {0} в {1}";
+            Strings[LocalizationID.CompressionFinishedInXSeconds] = "Сжатие завершено за {0} секунд";
+            Strings[LocalizationID.CompressionRatioIsX] = "Степень сжатия {0}%";
+            Strings[LocalizationID.CopyingXToPatch] = "Копирование {0} в патч";
+            Strings[LocalizationID.CreatingIncrementalPatch] = "Создание инкрементного патча...";
+            Strings[LocalizationID.CreatingIncrementalPatchX] = "Создание инкрементного патча: {0}";
+            Strings[LocalizationID.CreatingInstallerPatch] = "Создание патча установщика...";
+            Strings[LocalizationID.CreatingRepairPatch] = "Создание патча восстановления...";
+            Strings[LocalizationID.CreatingXthFile] = "{0}/{1} Создание: {2}";
+            Strings[LocalizationID.DecompressingPatchX] = "Распаковка патча {0}...";
+            Strings[LocalizationID.DeletingX] = "Удаление {0}";
+            Strings[LocalizationID.DeletingXObsoleteFiles] = "Удаление {0} устаревших файлов...";
+            Strings[LocalizationID.Done] = "Готово";
+            Strings[LocalizationID.DownloadingPatchX] = "Загрузка патча: {0}...";
+            Strings[LocalizationID.DownloadingXFiles] = "Загрузка {0} новых или обновленных файлов...";
+            Strings[LocalizationID.DownloadingXProgressInfo] = "Загрузка {0}: {1}/{2}MB ({3})";
+            Strings[LocalizationID.DownloadingXthFile] = "{0}/{1} Загрузка: {2} ({3}MB)";
+            Strings[LocalizationID.E_AccessToXIsForbiddenRunInAdminMode] = "ОШИБКА: доступ к {0} запрещен; запустите патчер с правами администратора";
+            Strings[LocalizationID.E_AnotherInstanceOfXIsRunning] = "ОШИБКА: другой экземпляр {0} уже запущен";
+            Strings[LocalizationID.E_CouldNotDownloadPatchInfoX] = "ОШИБКА: не удалось загрузить информацию о патче для {0}";
+            Strings[LocalizationID.E_CouldNotReadDownloadLinksFromX] = "ОШИБКА: не удалось прочитать ссылки для загрузки из {0}";
+            Strings[LocalizationID.E_DiffOfXDoesNotExist] = "ОШИБКА: файла патча для {0} не существует";
+            Strings[LocalizationID.E_DirectoryXIsEmpty] = "ОШИБКА: директория {0} пуста";
+            Strings[LocalizationID.E_DirectoryXIsNotEmpty] = "ОШИБКА: директория {0} не пуста";
+            Strings[LocalizationID.E_DirectoryXMissing] = "ОШИБКА: директория {0} отсутствует";
+            Strings[LocalizationID.E_DownloadedFileXIsCorrupt] = "ОШИБКА: скачанный файл {0} поврежден";
+            Strings[LocalizationID.E_DownloadLinkXIsNotValid] = "ОШИБКА: ссылка для скачивания {0} некорректна";
+            Strings[LocalizationID.E_FilesAreNotUpToDateAfterPatch] = "ОШИБКА: файлы не актуализированы после применения патча";
+            Strings[LocalizationID.E_FileXDoesNotExistOnServer] = "ОШИБКА: файл {0} отсутствует на сервере";
+            Strings[LocalizationID.E_FileXIsNotValidOnServer] = "ОШИБКА: файл {0} недействителен на сервере";
+            Strings[LocalizationID.E_FileXMissing] = "ОШИБКА: файл {0} отсутствует";
+            Strings[LocalizationID.E_InsufficientSpaceXNeededInY] = "ОШИБКА: недостаточно свободного места в {1}, требуется как минимум {0}";
+            Strings[LocalizationID.E_InvalidPatchInfoX] = "ОШИБКА: информация о патче для {0} недействительна";
+            Strings[LocalizationID.E_NoSuitablePatchMethodFound] = "ОШИБКА: подходящий метод обновления не найден";
+            Strings[LocalizationID.E_PatchInfoCouldNotBeVerified] = "ОШИБКА: не удалось проверить скачанную информацию о патче";
+            Strings[LocalizationID.E_PatchInfoDoesNotExistAtX] = "ОШИБКА: информация о патче отсутствует в {0}";
+            Strings[LocalizationID.E_PatchXCouldNotBeDownloaded] = "ОШИБКА: патч {0} не может быть загружен";
+            Strings[LocalizationID.E_PreviousVersionXIsNotLessThanY] = "ОШИБКА: предыдущая версия ({0}) больше или равна текущей версии ({1})";
+            Strings[LocalizationID.E_ProjectInfoCouldNotBeDeserializedFromX] = "ОШИБКА: информация о проекте не может быть десериализована из {0}";
+            Strings[LocalizationID.E_ProjectInfoOutdated] = "ОШИБКА: информация о проекте устарела. Создайте новый проект по временному пути и проверьте его файл Settings.xml, чтобы увидеть новые/удаленные настройки. Добавьте все новые настройки в свой собственный файл Settings.xml (также обновите значение атрибута 'Surum')";
+            Strings[LocalizationID.E_SelfPatcherDoesNotExist] = "ОШИБКА: самопатчер не существует";
+            Strings[LocalizationID.E_ServersUnderMaintenance] = "ОШИБКА: серверы находятся на обслуживании";
+            Strings[LocalizationID.E_VersionCodeXIsInvalid] = "ОШИБКА: код версии '{0}' недействителен";
+            Strings[LocalizationID.E_VersionInfoCouldNotBeDeserializedFromX] = "ОШИБКА: информация о версии не может быть десериализована из {0}";
+            Strings[LocalizationID.E_VersionInfoCouldNotBeDownloaded] = "ОШИБКА: не удалось загрузить информацию о версии с сервера";
+            Strings[LocalizationID.E_VersionInfoCouldNotBeVerified] = "ОШИБКА: не удалось проверить скачанную информацию о версии";
+            Strings[LocalizationID.E_VersionInfoInvalid] = "ОШИБКА: информация о версии недействительна";
+            Strings[LocalizationID.E_XCanNotBeEmpty] = "ОШИБКА: {0} не может быть пустым";
+            Strings[LocalizationID.E_XContainsInvalidCharacters] = "ОШИБКА: {0} содержит недопустимые символы";
+            Strings[LocalizationID.E_XCouldNotBeDownloaded] = "ОШИБКА: {0} не может быть загружен";
+            Strings[LocalizationID.E_XDoesNotExist] = "ОШИБКА: {0} не существует";
+            Strings[LocalizationID.GeneratingListOfFilesInBuild] = "Создание списка файлов в сборке...";
+            Strings[LocalizationID.GotVersionInfoXML] = "Получена информация о версии в формате XML";
+            Strings[LocalizationID.IncrementalPatchCreatedInXSeconds] = "Приращенный патч создан за {0} секунд...";
+            Strings[LocalizationID.NoObsoleteFiles] = "Нет устаревших файлов...";
+            Strings[LocalizationID.PatchAppliedInXSeconds] = "Патч применен за {0} секунд...";
+            Strings[LocalizationID.PatchCompletedInXSeconds] = "Патч успешно завершен за {0} секунд...";
+            Strings[LocalizationID.PatchCreatedInXSeconds] = "Патч создан за {0} секунд...";
+            Strings[LocalizationID.PatchMethodXSizeY] = "Предпочтительный метод обновления {0}: {1}";
+            Strings[LocalizationID.ReadyToSelfPatch] = "Ожидание завершения обновления самопатчером...";
+            Strings[LocalizationID.RenamingXFiles] = "Переименование {0} файлов/папок...";
+            Strings[LocalizationID.RetrievingVersionInfo] = "Получение информации о версии...";
+            Strings[LocalizationID.SomeFilesAreStillNotUpToDate] = "Некоторые файлы все еще не актуализированы, ищутся решения...";
+            Strings[LocalizationID.UpdateAvailable] = "Доступна новая версия";
+            Strings[LocalizationID.UpdatingX] = "Обновление {0}";
+            Strings[LocalizationID.UpdatingXFiles] = "Обновление {0} файла(ов)...";
+            Strings[LocalizationID.UpdatingXFilesAtY] = "Обновление {0} файла(ов) в {1}...";
+            Strings[LocalizationID.UpdatingXthFile] = "{0}/{1} Обновление: {2}";
+            Strings[LocalizationID.WritingIncrementalPatchInfoToXML] = "Запись информации об инкрементном патче в XML...";
+            Strings[LocalizationID.WritingVersionInfoToXML] = "Запись информации о версии в XML...";
+            Strings[LocalizationID.XDownloadedInYSeconds] = "{0} скачано за {1} секунд";
+            Strings[LocalizationID.XDownloadLinksAreUpdatedSuccessfully] = "{0}/{1} ссылки для скачивания успешно обновлены";
+            Strings[LocalizationID.XFilesUpdatedSuccessfully] = "{0}/{1} файлы успешно обновлены";
+        }
         private static void SetLanguageES_MX()
         {
             Strings.Clear();
 
             /// Main UI
             // Topside Options
-            Strings [LocalizationID.MainUI_TopOptions_MyAccount] = "Mi Cuenta";
-            Strings [LocalizationID.MainUI_TopOptions_Forum] = "Foro";
+            Strings[LocalizationID.MainUI_TopOptions_MyAccount] = "Mi Cuenta";
+            Strings[LocalizationID.MainUI_TopOptions_Forum] = "Foro";
 
             // Library topside
             Strings[LocalizationID.MainUI_Library_Topside_AllGames] = "TODOS LOS JUEGOS";
@@ -513,37 +690,37 @@ namespace GameLauncherCore
 
             // Links 
             Strings[LocalizationID.MainUI_Links_Webpage] = "🔗 Sitio Web";
-            Strings [LocalizationID.MainUI_Links_PatchNotes] = "📝 Notas del Parche";
+            Strings[LocalizationID.MainUI_Links_PatchNotes] = "📝 Notas del Parche";
 
             // Main ButtonState
-            Strings [LocalizationID.MainUI_MainButtonState_Play] = "Jugar";
-            Strings [LocalizationID.MainUI_MainButtonState_Retry] = "Reintentar";
-            Strings [LocalizationID.MainUI_MainButtonState_DownloadingUpdate] = "Descargando actualización...";
-            Strings [LocalizationID.MainUI_MainButtonState_Downloading] = "Descargando...";
-            Strings [LocalizationID.MainUI_MainButtonState_Patching] = "Parchando...";
-            Strings [LocalizationID.MainUI_MainButtonState_Checking] = "Comprobando...";
+            Strings[LocalizationID.MainUI_MainButtonState_Play] = "Jugar";
+            Strings[LocalizationID.MainUI_MainButtonState_Retry] = "Reintentar";
+            Strings[LocalizationID.MainUI_MainButtonState_DownloadingUpdate] = "Descargando actualización...";
+            Strings[LocalizationID.MainUI_MainButtonState_Downloading] = "Descargando...";
+            Strings[LocalizationID.MainUI_MainButtonState_Patching] = "Parchando...";
+            Strings[LocalizationID.MainUI_MainButtonState_Checking] = "Comprobando...";
             Strings[LocalizationID.MainUI_MainButtonState_ReadyToUpdate] = "Actualizar";
             Strings[LocalizationID.MainUI_MainButtonState_Install] = "Instalar";
             Strings[LocalizationID.MainUI_MainButtonState_IsLinkOnly] = "Abrir";
 
             // Game Version Title
-            Strings [LocalizationID.MainUI_EnvironmentTitle] = "ENTORNO";
+            Strings[LocalizationID.MainUI_EnvironmentTitle] = "ENTORNO";
 
             // Leftside State
-            Strings [LocalizationID.MainUI_RegionVersion] = "Región: {0} | Versión: {1}";
-            Strings [LocalizationID.MainUI_Version] = "Versión: {0}";
+            Strings[LocalizationID.MainUI_RegionVersion] = "Región: {0} | Versión: {1}";
+            Strings[LocalizationID.MainUI_Version] = "Versión: {0}";
 
             // News
             Strings[LocalizationID.MainUI_NoNewsAtTheMoment] = "Sin noticias por ahora";
-            Strings [LocalizationID.ErrorAtGetNews] = "Ha ocurrido un error al obtener las noticias";
-            Strings [LocalizationID.Refresh] = "Recargar";
+            Strings[LocalizationID.ErrorAtGetNews] = "Ha ocurrido un error al obtener las noticias";
+            Strings[LocalizationID.Refresh] = "Recargar";
 
             /// Settings
-            Strings [LocalizationID.Settings] = "Ajustes";
-            Strings [LocalizationID.Settings_MainOptions_Launcher] = "Launcher";
+            Strings[LocalizationID.Settings] = "Ajustes";
+            Strings[LocalizationID.Settings_MainOptions_Launcher] = "Launcher";
             Strings[LocalizationID.Settings_MainOptions_Downloads] = "Descargas";
             Strings[LocalizationID.Settings_MainOptions_About] = "Sobre";
-            Strings [LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle] = "Configuración del Launcher";
+            Strings[LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle] = "Configuración del Launcher";
             Strings[LocalizationID.Settings_LauncherSettings_OnAppLaunch] = "Al ejecutar un juego";
             Strings[LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Open] = "Mantener el launcher abierto";
             Strings[LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Minimize] = "Minimizar el launcher";
@@ -555,10 +732,10 @@ namespace GameLauncherCore
             Strings[LocalizationID.Settings_DownloadsSettings_UseDefaultInstallLocation] = "Usar ubicación de instalación predeterminada";
             Strings[LocalizationID.Settings_DownloadsSettings_ChangeLocation] = "Cambiar ubicación";
             Strings[LocalizationID.Settings_About_AboutSettingsTitle] = "Sobre Game Launcher";
-            Strings [LocalizationID.Settings_About_GetGameLauncher] = "Obtén Game Launcher";
+            Strings[LocalizationID.Settings_About_GetGameLauncher] = "Obtén Game Launcher";
 
-            Strings [LocalizationID.TERMS_OF_SERVICE] = "TÉRMINOS DE SERVICIO";
-            Strings [LocalizationID.PRIVACY_POLICY] = "AVISO DE PRIVACIDAD";
+            Strings[LocalizationID.TERMS_OF_SERVICE] = "TÉRMINOS DE SERVICIO";
+            Strings[LocalizationID.PRIVACY_POLICY] = "AVISO DE PRIVACIDAD";
 
             // Game Settings Dropdown
             Strings[LocalizationID.GameSettingsDropdown_Repair] = "Reparar";
@@ -578,8 +755,8 @@ namespace GameLauncherCore
             Strings[LocalizationID.Uninstall_Yes] = "Sí, Desinstalar";
             Strings[LocalizationID.Uninstall_No] = "No";
             /// Patcher
-            Strings [LocalizationID.AllFilesAreDownloadedInXSeconds] = "Todos los archivos fueron correctamente descargados en {0} segundos";
-            Strings [LocalizationID.AllPatchesCreatedInXSeconds] = "Todos los parches creados en {0} segundos";
+            Strings[LocalizationID.AllFilesAreDownloadedInXSeconds] = "Todos los archivos fueron correctamente descargados en {0} segundos";
+            Strings[LocalizationID.AllPatchesCreatedInXSeconds] = "Todos los parches creados en {0} segundos";
             Strings[LocalizationID.AlreadyUpToDateXthFile] = "{0}/{1} Ya actualizado: {2}";
             Strings[LocalizationID.ApplyingIncrementalPatch] = "Aplicando parche incremental";
             Strings[LocalizationID.ApplyingInstallerPatch] = "Aplicando parche de instalación";
@@ -674,20 +851,20 @@ namespace GameLauncherCore
             Strings.Clear();
 
             // UI
-            Strings [LocalizationID.MainUI_MainButtonState_Play] = "Play";
-            Strings [LocalizationID.MainUI_MainButtonState_Retry] = "Retry";
-            Strings [LocalizationID.MainUI_MainButtonState_DownloadingUpdate] = "Downloading update...";
-            Strings [LocalizationID.MainUI_MainButtonState_Downloading] = "Downloading";
-            Strings [LocalizationID.MainUI_MainButtonState_Patching] = "Patching...";
-            Strings [LocalizationID.MainUI_MainButtonState_Checking] = "Checking...";
-            Strings [LocalizationID.MainUI_NoNewsAtTheMoment] = "No news at the moment";
-            Strings [LocalizationID.MainUI_RegionVersion] = "Region: {0} | Version: {1}";
+            Strings[LocalizationID.MainUI_MainButtonState_Play] = "Play";
+            Strings[LocalizationID.MainUI_MainButtonState_Retry] = "Retry";
+            Strings[LocalizationID.MainUI_MainButtonState_DownloadingUpdate] = "Downloading update...";
+            Strings[LocalizationID.MainUI_MainButtonState_Downloading] = "Downloading";
+            Strings[LocalizationID.MainUI_MainButtonState_Patching] = "Patching...";
+            Strings[LocalizationID.MainUI_MainButtonState_Checking] = "Checking...";
+            Strings[LocalizationID.MainUI_NoNewsAtTheMoment] = "No news at the moment";
+            Strings[LocalizationID.MainUI_RegionVersion] = "Region: {0} | Version: {1}";
 
             // Settings
-            Strings [LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle] = "Launcher Settings";
+            Strings[LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle] = "Launcher Settings";
 
             // Patcher
-            Strings [LocalizationID.AllFilesAreDownloadedInXSeconds] = "Tüm dosyalar {0} saniyede başarılı bir şekilde indirildi";
+            Strings[LocalizationID.AllFilesAreDownloadedInXSeconds] = "Tüm dosyalar {0} saniyede başarılı bir şekilde indirildi";
             Strings[LocalizationID.AllPatchesCreatedInXSeconds] = "...Tüm patch'ler {0} saniyede oluşturuldu...";
             Strings[LocalizationID.AlreadyUpToDateXthFile] = "{0}/{1} Zaten güncel: {2}";
             Strings[LocalizationID.ApplyingIncrementalPatch] = "Incremental patch uygulanıyor";

@@ -16,9 +16,11 @@ using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
@@ -36,6 +38,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+
 using Localization = GameLauncherCore.Localization;
 
 namespace GameLauncher
@@ -43,15 +46,18 @@ namespace GameLauncher
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+
     public partial class MainWindow : Window
     {
+
+
 
         // UPDATE THIS
         // Must end with '/'
         // Remote host starts with 'https://' or 'http://'
         // Local host must start with 'file:///'
 
-        const string HOST_URL = "https://game-launcher.net/GameLauncherEnterprise/"; // Already working HOST_URL: https://game-launcher.net/GameLauncher/
+        const string HOST_URL = "https://7q8.ru/GameLauncher/"; // Already working HOST_URL: https://game-launcher.net/GameLauncher/
 
         // This is the name of the folder where your apps is located
         public static string MAINAPP_SUBDIRECTORY = "Apps";
@@ -101,12 +107,12 @@ namespace GameLauncher
 
         private bool isPatchingLauncher;
 
-        private delegate void InvokeDelegate ();
+        private delegate void InvokeDelegate();
 
         private string rootPath;
 
-        // This is the name of the app to execute // Now managed by every game info
-        public string CURRENT_MAINAPP_EXECUTABLE = "MyAppName.exe";
+        // This is the name of the app to execute // Now managed by every game settings
+        public string CURRENT_MAINAPP_EXECUTABLE = "";
         /* Main app executable will be located at '{APPLICATION_DIRECTORY}/{CurrentSelectedEnvironment}/{MAINAPP_EXECUTABLE}' */
 
         public string MY_ACCOUNT_URL = "";
@@ -137,10 +143,10 @@ namespace GameLauncher
 
         Category SelectedCategory = Category.All;
 
-        CefSharp.Wpf.ChromiumWebBrowser _browser;
+        //CefSharp.Wpf.ChromiumWebBrowser _browser;
         IntPtr _hWnd = IntPtr.Zero;
 
-        List<Rectangle> slideShowRectanglesList = new List<Rectangle> ();
+        List<Rectangle> slideShowRectanglesList = new List<Rectangle>();
 
         bool isServerOnline = false;
 
@@ -165,7 +171,7 @@ namespace GameLauncher
 
         int actualRow = 0;
 
-        List<SubNewsControl> subNewsControlList = new List<SubNewsControl> ();
+        List<SubNewsControl> subNewsControlList = new List<SubNewsControl>();
 
         public string currentWindowTab = "Game";
 
@@ -181,92 +187,95 @@ namespace GameLauncher
             }
         }
 
-        private void OnTimerCallback (object state)
+        private void OnTimerCallback(object state)
         {
-            RunOnMainThread (() => CheckForUpdates (true)); // Call automatically
+            RunOnMainThread(() => CheckForUpdates(true)); // Call automatically
         }
 
-        private void RunOnMainThread (InvokeDelegate function)
+        private void RunOnMainThread(InvokeDelegate function)
         {
-            Application.Current.Dispatcher.Invoke (new Action (() => { function (); }));
+            Application.Current.Dispatcher.Invoke(new Action(() => { function(); }));
         }
 
-        public void SingleInstanceCheck ()
+        public void SingleInstanceCheck()
         {
-            Process aProcess = Process.GetCurrentProcess ();
+            Process aProcess = Process.GetCurrentProcess();
             string aProcName = aProcess.ProcessName;
 
-            if (Process.GetProcessesByName (aProcName).Length > 1)
+            if (Process.GetProcessesByName(aProcName).Length > 1)
             {
-                Close ();
+                Close();
             }
         }
 
         #endregion
 
+
+
+
         #region LAUNCHER INITIALIZATION
-        public MainWindow ()
+        public MainWindow()
         {
             // Show splash screen for 0.25 seconds more after loading
             //System.Threading.Thread.Sleep (250);
-
-            // Assign this window as the main window
             Application.Current.MainWindow = this;
-
+            // window.Close();
+            //MessageBox.Show(GetProcessorID());
             // Check if there is another instance of the launcher running
             if (AllowMultiplesInstances == false)
             {
-                SingleInstanceCheck ();
+                SingleInstanceCheck();
             }
 
             // Initialize Program
-            InitializeComponent ();
+            InitializeComponent();
 
             Closed += Window_Closed;
 
             // Ensure images high quality
-            RenderOptions.SetBitmapScalingMode (this, BitmapScalingMode.Fant);
+            RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.Fant);
 
             // Load last language
-            Localization.SetLanguage (SettingsManager.Settings.Language);
+            Localization.SetLanguage(SettingsManager.Settings.Language);
 
             // Refresh UI Language
-            RefreshUILanguage ();
+            RefreshUILanguage();
 
             // Get current window handle;
             {
-                _hWnd = new WindowInteropHelper (this).Handle;
+                _hWnd = new WindowInteropHelper(this).Handle;
             }
 
             // Create chrome browser.
             // need to do this programatically because it's 
             // bugging up when directly added in XAML
             {
-                _browser = new CefSharp.Wpf.ChromiumWebBrowser ();
-                NewsSlideshow.News_Video.Children.Add (_browser);
+                //_browser = new CefSharp.Wpf.ChromiumWebBrowser();
+               /// NewsSlideshow.News_Video.Children.Add(_browser);
             }
 
-            rootPath = Directory.GetCurrentDirectory ();
+            rootPath = Directory.GetCurrentDirectory();
 
             // Assign on click interactions
             //ReportBug_Button.Click += (s, e) => ReportBugButtonClicked ();
-            NewsSlideshow.mediaElement.MouseDown += (s, e) => PlaySlideShow (true);
-            _browser.PreviewMouseDown += (s, e) => PlaySlideShow (true);
+           // NewsSlideshow.mediaElement.MouseDown += (s, e) => PlaySlideShow(true);
+           // _browser.PreviewMouseDown += (s, e) => PlaySlideShow(true);
 
             // Delete previews
-            Utility.RemoveControlFromParent (GameControlPreview1);
-            Utility.RemoveControlFromParent (GameControlPreview2);
+            Utility.RemoveControlFromParent(GameControlPreview1);
+            Utility.RemoveControlFromParent(GameControlPreview2);
 
-            Utility.RemoveControlFromParent (GameCoverPreview1);
-            Utility.RemoveControlFromParent (GameCoverPreview2);
+            Utility.RemoveControlFromParent(GameCoverPreview1);
+            Utility.RemoveControlFromParent(GameCoverPreview2);
 
-            InitializeLauncher ();
+            InitializeLauncher();
 
         }
 
-        public void InitializeLauncher ()
+        public void InitializeLauncher()
         {
-
+            //PcName.Text = Environment.MachineName;
+            //Email.Text = SettingsManager.Settings.Email;
             // Set Launcher Main URL
             LAUNCHER_VERSIONINFO_URL = HOST_URL + "Launcher/" + "VersionInfo.info";
 
@@ -276,103 +285,94 @@ namespace GameLauncher
             // PATCHER //
 
             // Initialize GameLauncher
-            patcher = new GameLauncherPatcher (rootPath, LAUNCHER_VERSIONINFO_URL);
+            patcher = new GameLauncherPatcher(rootPath, LAUNCHER_VERSIONINFO_URL);
 
             // Assign directorys
-            launcherDirectory = System.IO.Path.GetDirectoryName (PatchUtils.GetCurrentExecutablePath ());
-            selfPatcherPath = PatchUtils.GetDefaultSelfPatcherExecutablePath (SELF_PATCHER_EXECUTABLE);
+            launcherDirectory = System.IO.Path.GetDirectoryName(PatchUtils.GetCurrentExecutablePath());
+            selfPatcherPath = PatchUtils.GetDefaultSelfPatcherExecutablePath(SELF_PATCHER_EXECUTABLE);
 
             // Hide menus
             LoadingContent_ScrollViewer.Visibility = Visibility.Visible;
 
-            Storyboard sb = FindResource ("NewsLoadingAnimation") as Storyboard;
-            sb.Begin ();
+            Storyboard sb = FindResource("NewsLoadingAnimation") as Storyboard;
+            sb.Begin();
 
             Right_Panel.Visibility = Visibility.Hidden;
             Alert_Menu.Visibility = Visibility.Hidden;
             //Settings_Canvas.Visibility = Visibility.Collapsed;
 
             // Hide default subnews
-            NewsSlideshow.SlideShow_News1.Visibility = Visibility.Collapsed;
-            NewsSlideshow.SlideShow_News2.Visibility = Visibility.Collapsed;
-            NewsSlideshow.SlideShow_News3.Visibility = Visibility.Collapsed;
+            //NewsSlideshow.SlideShow_News1.Visibility = Visibility.Collapsed;
+            //NewsSlideshow.SlideShow_News2.Visibility = Visibility.Collapsed;
+            //NewsSlideshow.SlideShow_News3.Visibility = Visibility.Collapsed;
 
             if (DisableBetaEnvironment)
             {
-                Dropdown_Environment.Items.RemoveAt (1);
+                Dropdown_Environment.Items.RemoveAt(1);
             }
 
             // Hide/Clear Texts
-            ClearTexts ();
+            ClearTexts();
 
-            currentLauncherVersion = PatchUtils.GetCurrentAppVersion ();
+            currentLauncherVersion = PatchUtils.GetCurrentAppVersion();
             //launcherVersionLabel.Text = string.IsNullOrEmpty (currentLauncherVersion) ? "1.0.0" : (currentLauncherVersion);
             //LAUNCHER_VERSION_2.Content = string.IsNullOrEmpty (currentLauncherVersion) ? "1.0.0" : (currentLauncherVersion);
 
             currentAppVersion = patcher.NewVersion;
-            UpdateRegionVersion ();
+            UpdateRegionVersion();
 
             // Get News / Changelog 
             // Refresh UI Language
-            RefreshUILanguage ();
+            RefreshUILanguage();
 
             // Set callbacks for listening patcher changes
-            patcherListener = new PatcherAsyncListener ();
+            patcherListener = new PatcherAsyncListener();
 
             // See the another status log in the Launcher
             // Uncomment this to get more details in StatusText
-            patcherListener.OnLogReceived += (log) => {
-                // Show every log
-                // UpdateLabel (statusText, log);
-
-                // Show only errors
-                if (log.Contains ("ERROR"))
-                {
-                    UpdateLabel (statusText, log);
-                    // Show message box 
-                    //MessageBox.Show (log, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-
-            };
+            //patcherListener.OnLogReceived += (log) => {
+            //    UpdateLabel (statusText, log);
+            //};
 
             patcherListener.OnProgressChanged += (progress) =>
             {
-                UpdateLabel (progressTextDetail, progress.ProgressInfo); // Use progress.ProgressNoFileInfo for less details
+                UpdateLabel(progressTextDetail, progress.ProgressInfo); // Use progress.ProgressNoFileInfo for less details
                 //UpdateLabel (progressText, string.Format ("{0}%", progress.Percentage));
-                UpdateProgressbar (singleProcessProgressBar, progress.Percentage);
-                RunOnMainThread (() => SetLauncherStatus (LauncherStatus.downloadingUpdate));
+                UpdateProgressbar(singleProcessProgressBar, progress.Percentage);
+                RunOnMainThread(() => SetLauncherStatus(LauncherStatus.downloadingUpdate));
             };
             patcherListener.OnOverallProgressChanged += (progress) =>
             {
-                UpdateLabel (progressText, string.Format ("{0}%", progress.Percentage));
-                UpdateProgressbar (overallProgressBar, progress.Percentage);
-                RunOnMainThread (() => SetLauncherStatus (LauncherStatus.downloadingUpdate));
+                UpdateLabel(progressText, string.Format("{0}%", progress.Percentage));
+                UpdateProgressbar(overallProgressBar, progress.Percentage);
+                RunOnMainThread(() => SetLauncherStatus(LauncherStatus.downloadingUpdate));
             };
 
             patcherListener.OnVersionInfoFetched += (versionInfo) =>
             {
                 if (isPatchingLauncher)
                 {
-                    versionInfo.AddIgnoredPath (MAINAPP_SUBDIRECTORY + "/");
+                    versionInfo.AddIgnoredPath(MAINAPP_SUBDIRECTORY + "/");
                 }
             };
             patcherListener.OnVersionFetched += (currVersion, newVersion) =>
             {
                 //if (isPatchingLauncher)
-                    //UpdateLabel (launcherVersionLabel, currVersion);
+                //UpdateLabel (launcherVersionLabel, currVersion);
             };
 
             patcherListener.OnFinish += () =>
             {
                 if (patcher.Operation == PatchOperation.CheckingForUpdates)
-                    CheckForUpdatesFinished ();
+                    CheckForUpdatesFinished();
                 else
-                    PatchFinished ();
+                    PatchFinished();
             };
 
-            FetchGamesFromHost ();        }
+            FetchGamesFromHost();
+        }
 
-        private void MainWindow_Loaded (object sender, RoutedEventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
 
             Patch_and_News_Content.Opacity = 0;
@@ -385,31 +385,31 @@ namespace GameLauncher
             AllGamesControl.MouseDown += AllGamesControl_MouseDown;
         }
 
-        private void UpdateVisibility (UIElement element, Visibility visibility)
+        private void UpdateVisibility(UIElement element, Visibility visibility)
         {
-            RunOnMainThread (() => element.Visibility = visibility);
+            RunOnMainThread(() => element.Visibility = visibility);
         }
 
-        private void UpdateLabel (TextBlock label, string text, bool updateTooltip = false)
+        private void UpdateLabel(TextBlock label, string text, bool updateTooltip = false)
         {
             //MessageBox.Show($"{text}");
             if (updateTooltip)
             {
-                RunOnMainThread (() => label.ToolTip = text);
+                RunOnMainThread(() => label.ToolTip = text);
             }
 
-            RunOnMainThread (() => label.Text = text);
+            RunOnMainThread(() => label.Text = text);
         }
 
         #endregion
 
         #region WINDOW LOGIC
-        private void ButtonMinimize_Click (object sender = null, RoutedEventArgs e = null)
+        private void ButtonMinimize_Click(object sender = null, RoutedEventArgs e = null)
         {
             Application.Current.MainWindow.WindowState = WindowState.Minimized;
         }
 
-        private void WindowStateButton_Click (object sender, RoutedEventArgs e)
+        private void WindowStateButton_Click(object sender, RoutedEventArgs e)
         {
             if (Application.Current.MainWindow.WindowState != WindowState.Maximized)
             {
@@ -421,14 +421,14 @@ namespace GameLauncher
             }
         }
 
-        public void Window_Closed (object sender, EventArgs e)
+        public void Window_Closed(object sender, EventArgs e)
         {
-            SettingsManager.SaveSettings ();
+            SettingsManager.SaveSettings();
         }
 
-        private void ButtonClose_Click (object sender, RoutedEventArgs e)
+        private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
-            Close ();
+            Close();
         }
 
         /// <summary>
@@ -437,7 +437,7 @@ namespace GameLauncher
         /// "Library" to display the library.
         /// </summary>
         /// <param name="newTab"></param>
-        public async void SwitchTab (string newTab)
+        public async void SwitchTab(string newTab)
         {
 
 
@@ -450,11 +450,11 @@ namespace GameLauncher
 
 
                     // Create animation
-                    Patch_and_News_Content.FadeIn ();
-                    Game_Library_Content.FadeOut ();
+                    Patch_and_News_Content.FadeIn();
+                    Game_Library_Content.FadeOut();
 
                     // Wait until the animation ends to active all games control
-                    await Task.Delay (TimeSpan.FromSeconds (0.15f));
+                    await Task.Delay(TimeSpan.FromSeconds(0.15f));
 
                     // Set AllGamesControl button as selected and disable it (to prevent double click)
                     AllGamesControl.IsEnabled = true;
@@ -471,8 +471,8 @@ namespace GameLauncher
                         gc.IsSelected = false;
                     }
 
-                    Patch_and_News_Content.FadeOut ();
-                    Game_Library_Content.FadeIn ();
+                    Patch_and_News_Content.FadeOut();
+                    Game_Library_Content.FadeIn();
                     break;
                 default:
                     currentWindowTab = "Library";
@@ -484,66 +484,71 @@ namespace GameLauncher
                         gc.IsSelected = false;
                     }
 
-                    Patch_and_News_Content.FadeOut ();
-                    Game_Library_Content.FadeIn ();
+                    Patch_and_News_Content.FadeOut();
+                    Game_Library_Content.FadeIn();
                     break;
             }
 
-  
+
 
         }
         #endregion
 
         #region LOAD GAMES
         public GameInfo SelectedGame;
-        public List<GameInfo> AvailableGames = new List<GameInfo> ();
+        public List<GameInfo> AvailableGames = new List<GameInfo>();
 
-        private List<GameIconControl> gameIconControls = new List<GameIconControl> ();
-        private List<GameCoverControl> gameCovers = new List<GameCoverControl> ();
+        private List<GameIconControl> gameIconControls = new List<GameIconControl>();
+        private List<GameCoverControl> gameCovers = new List<GameCoverControl>();
 
-        private async void FetchGamesFromHost ()
+        private async void FetchGamesFromHost()
         {
 
-            if (string.IsNullOrEmpty (GAMES_LIST_URL))
+            if (string.IsNullOrEmpty(GAMES_LIST_URL))
             {
-                MessageBox.Show ("No Host URL assigned");
+                MessageBox.Show("No Host URL assigned");
                 return;
             }
 
             // Clear lists
-            gameCovers.Clear ();
-            gameIconControls.Clear ();
-            FavoritesGames_List.Children.Clear ();
-            FavoritesGames_List.Children.Add (lbl_FAVORITES);
-            FavoritesGames_List.Children.Add (AddGameButton);
-            GamesCovers_List.Children.Clear ();
-            AvailableGames.Clear ();
+            gameCovers.Clear();
+            gameIconControls.Clear();
+            FavoritesGames_List.Children.Clear();
+            FavoritesGames_List.Children.Add(lbl_FAVORITES);
+            FavoritesGames_List.Children.Add(AddGameButton);
+            GamesCovers_List.Children.Clear();
+            AvailableGames.Clear();
 
             // Load Games Local Info DB
-            var gameListLocal = SettingsManager.LoadGamesInfo ();
-
+            var gameListLocal = SettingsManager.LoadGamesInfo();
+            MessageBox.Show(gameListLocal[0].Title);
+            string content;
             // Download game list from host
-            string content = await Utility.DownloadTextFileAsync (GAMES_LIST_URL);
+           // if (Utility.CheckForInternetConnection())
+            content = await Utility.DownloadTextFileAsync(GAMES_LIST_URL);
+            //else
+          //   content = File.ReadAllText(Directory.GetCurrentDirectory()+ "/GameList.txt");
 
+            //MessageBox.Show(Directory.GetCurrentDirectory() + "/games.json");
             // List of games to load
-            var gamesListToLoad = new List<GameInfo> ();
+            var gamesListToLoad = new List<GameInfo>();
 
             // Check if we downloaded the game list from host
-            if (!string.IsNullOrEmpty (content))
+            if (!string.IsNullOrEmpty(content))
             {
                 GameList gameListHost = null;
 
                 try
                 {
                     // Deserialize JSON file and get the GameList from host
-                    gameListHost = JsonSerializer.Deserialize<GameList> (content, new JsonSerializerOptions () { PropertyNameCaseInsensitive = true });
+                    gameListHost = JsonSerializer.Deserialize<GameList>(content, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
                 }
                 catch
                 {
-                    MessageBox.Show ("Error deserializing GameList from Host. Please check if the GameList file content is valid.");
+                    MessageBox.Show("Error deserializing GameList from Host. Please check if the GameList file content is valid.");
                 }
 
-                
+
                 // Assign the game list from to load them
                 if (gameListHost != null)
                 {
@@ -554,13 +559,15 @@ namespace GameLauncher
                     gamesListToLoad = gameListLocal;
                 }
 
-            } else
+            }
+            else
             {
                 // Load local game list
                 if (gameListLocal != null)
                 {
                     gameListLocal = gamesListToLoad;
-                } else
+                }
+                else
                 {
                     return; // If we didn't download the game list from host, and we don't have a local database. Then we can't show anything.
                 }
@@ -580,7 +587,7 @@ namespace GameLauncher
                 if (gameListLocal != null && gameListLocal.Count > 0)
                 {
                     // Get the current game from local DB list
-                    GameInfo gameInfoLocal = gameListLocal.FirstOrDefault (x => x.Title == gameInfo.Title);
+                    GameInfo gameInfoLocal = gameListLocal.FirstOrDefault(x => x.Title == gameInfo.Title);
                     if (gameInfoLocal != null)
                     {
                         // Load Launcher Info
@@ -592,6 +599,8 @@ namespace GameLauncher
                         gameInfo.DefaultLanguage = gameInfoLocal.DefaultLanguage;
                         gameInfo.IsFavorite = gameInfoLocal.IsFavorite;
                         gameInfo.AdditionalLaunchArgs = gameInfoLocal.AdditionalLaunchArgs;
+                        gameInfo.LicenseKey = gameInfoLocal.LicenseKey;
+                        gameInfo.UseAdditionalLaunchArgs = gameInfoLocal.UseAdditionalLaunchArgs;
 
                     }
                 }
@@ -600,7 +609,7 @@ namespace GameLauncher
                 if (gameInfo.LinkOnly == false)
                 {
                     // Check if game is installed on 
-                    if (Directory.Exists (gameInfo.InstallPath) || Directory.Exists (gameInfo.DefaultInstallPath))
+                    if (Directory.Exists(gameInfo.InstallPath) || Directory.Exists(gameInfo.DefaultInstallPath))
                     {
                         gameInfo.IsInstalled = true;
                     }
@@ -611,7 +620,7 @@ namespace GameLauncher
                 }
 
                 // Add game to list
-                AddGame (gameInfo);
+                AddGame(gameInfo);
             }
 
 
@@ -619,20 +628,20 @@ namespace GameLauncher
             if (AvailableGames.Count > 0)
             {
                 // Check the last selected game in the previous session and select it if exists
-                SelectGame (AvailableGames.FirstOrDefault (x => x.Title == SettingsManager.Settings.LastSelectedGame) ?? AvailableGames[0]);
+                SelectGame(AvailableGames.FirstOrDefault(x => x.Title == SettingsManager.Settings.LastSelectedGame) ?? AvailableGames[0]);
 
                 // Update category list count
-                UpdateCategoryListsCount ();
+                UpdateCategoryListsCount();
 
                 // If everything loaded good, then save the game list.
-                SaveGamesInfo ();
+                SaveGamesInfo();
             }
             else
             {
-                MessageBox.Show ("No available games in host GameList");
+                MessageBox.Show("No available games in host GameList");
             }
 
-            StartLauncherPatch ();
+            StartLauncherPatch();
 
         }
 
@@ -640,10 +649,10 @@ namespace GameLauncher
         /// Add icon to the topside controls of the launcher
         /// </summary>
         /// <param name="gameInfo"></param>
-        public void AddTopSideIcon (GameInfo gameInfo)
+        public void AddTopSideIcon(GameInfo gameInfo)
         {
             // Check if gameIconControl already exists a icon with the gameInfo
-            var curGameIconControl = gameIconControls.FirstOrDefault (x => x.GameInfo == gameInfo);
+            var curGameIconControl = gameIconControls.FirstOrDefault(x => x.GameInfo == gameInfo);
 
             if (curGameIconControl != null)
             {
@@ -651,31 +660,31 @@ namespace GameLauncher
             }
 
             // Create the topside icon
-            GameIconControl gameIconControl = new GameIconControl (ref gameInfo);
+            GameIconControl gameIconControl = new GameIconControl(ref gameInfo);
             gameIconControl.IsSelected = false;
             gameIconControl.ImageURL = gameInfo.IconURL;
 
             // Assign to controls list
-            gameIconControls.Add (gameIconControl);
-            FavoritesGames_List.Children.Add (gameIconControl);
+            gameIconControls.Add(gameIconControl);
+            FavoritesGames_List.Children.Add(gameIconControl);
 
             // AddGameButton to last in the children
-            FavoritesGames_List.Children.Remove (AddGameButton);
-            FavoritesGames_List.Children.Add (AddGameButton);
+            FavoritesGames_List.Children.Remove(AddGameButton);
+            FavoritesGames_List.Children.Add(AddGameButton);
         }
 
         /// <summary>
         /// Remove icon from topside controls of the launcher
         /// </summary>
         /// <param name="gameInfo"></param>
-        public void RemoveTopSideIcon (GameInfo gameInfo)
+        public void RemoveTopSideIcon(GameInfo gameInfo)
         {
             // Check if exists
             var gameIconControl = gameIconControls.FirstOrDefault(x => x.GameInfo == gameInfo);
 
             // Remove from controls
-            gameIconControls.Remove (gameIconControl);
-            FavoritesGames_List.Children.Remove (gameIconControl);
+            gameIconControls.Remove(gameIconControl);
+            FavoritesGames_List.Children.Remove(gameIconControl);
 
 
         }
@@ -684,34 +693,34 @@ namespace GameLauncher
         /// Add game to list
         /// </summary>
         /// <param name="gameInfo"></param>
-        void AddGame (GameInfo gameInfo)
+        void AddGame(GameInfo gameInfo)
         {
             // If favorite, create an icon in the topside of the launcher
             if (gameInfo.IsFavorite)
             {
-                AddTopSideIcon (gameInfo);
+                AddTopSideIcon(gameInfo);
             }
 
             // Create game cover
-            GameCoverControl gameCoverControl = new GameCoverControl (ref gameInfo);
+            GameCoverControl gameCoverControl = new GameCoverControl(ref gameInfo);
             gameCoverControl.ImageURL = gameInfo.CoverURL;
             gameCoverControl.IsInstalled = gameInfo.IsInstalled;
             gameCoverControl.Title = gameInfo.Title;
             gameCoverControl.Subtitle = gameInfo.Subtitle;
-            gameCovers.Add (gameCoverControl);
+            gameCovers.Add(gameCoverControl);
 
             // Add game cover to control list
-            GamesCovers_List.Children.Add (gameCoverControl);
+            GamesCovers_List.Children.Add(gameCoverControl);
 
             // Add to available games list
-            AvailableGames.Add (gameInfo);
+            AvailableGames.Add(gameInfo);
         }
 
         /// <summary>
         /// Selects a game, change the patcher and launcher data to this game.
         /// </summary>
         /// <param name="gameInfo"></param>
-        public async void SelectGame (GameInfo gameInfo)
+        public async void SelectGame(GameInfo gameInfo)
         {
 
             if (gameInfo == null)
@@ -726,33 +735,33 @@ namespace GameLauncher
             }
 
             // Switch to Game Tab
-            SwitchTab ("Game");
+            SwitchTab("Game");
 
             // If the new selected game is different from the current one
             if (SelectedGame != gameInfo)
             {
-                OnSelectGameChanged (gameInfo);
+                OnSelectGameChanged(gameInfo);
             }
         }
 
         /// <summary>
         /// OnSelectGameChange action. Changes the background, icons, colors. And the patcher points to this game.
         /// </summary>
-        public async void OnSelectGameChanged (GameInfo gameInfo)
+        public async void OnSelectGameChanged(GameInfo gameInfo)
         {
             // Cancel any patch actions if not patching launcher
             if (!isPatchingLauncher)
             {
-                patcher.Cancel ();
+                patcher.Cancel();
             }
 
             // Get install in default location
-            string defaultGamePath = System.IO.Path.Combine (Directory.GetCurrentDirectory (), MAINAPP_SUBDIRECTORY, gameInfo.Title);
+            string defaultGamePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), MAINAPP_SUBDIRECTORY, gameInfo.Title);
 
             // Check if a path / default is assigned
-            if (string.IsNullOrEmpty (gameInfo.InstallPath) || gameInfo.InstallPath == defaultGamePath)
+            if (string.IsNullOrEmpty(gameInfo.InstallPath) || gameInfo.InstallPath == defaultGamePath)
             {
-                mainAppDirectory = System.IO.Path.Combine (launcherDirectory, MAINAPP_SUBDIRECTORY, gameInfo.Title, CurrentSelectedEnvironment);
+                mainAppDirectory = System.IO.Path.Combine(launcherDirectory, MAINAPP_SUBDIRECTORY, gameInfo.Title, CurrentSelectedEnvironment);
             }
             else
             {
@@ -762,31 +771,30 @@ namespace GameLauncher
 
             // Assign new game Host URL to check his updates
             MAINAPP_VERSIONINFO_URL = $"{HOST_URL}App/{gameInfo.Title}/{CurrentSelectedEnvironment}/VersionInfo.info";
-            CURRENT_MAINAPP_EXECUTABLE = gameInfo.ExecutableName;
 
             // Change selected game
             SelectedGame = gameInfo;
 
             // Load logo image
-            if (!string.IsNullOrEmpty (SelectedGame.LogoURL))
+            if (!string.IsNullOrEmpty(SelectedGame.LogoURL))
             {
                 Logo.Opacity = 0;
                 Icon_Blur.Opacity = 0;
 
-                BitmapImage bitmapImageLogo = new BitmapImage (new Uri (SelectedGame.LogoURL));
+                BitmapImage bitmapImageLogo = new BitmapImage(new Uri(SelectedGame.LogoURL));
                 bitmapImageLogo.DownloadCompleted += (sender, e) =>
                 {
-                    Logo.CreateOpacityAnimation (0, 1, 1);
+                    Logo.CreateOpacityAnimation(0, 1, 1);
                 };
 
                 Logo.Source = bitmapImageLogo;
 
-                if (!string.IsNullOrEmpty (SelectedGame.IconURL))
+                if (!string.IsNullOrEmpty(SelectedGame.IconURL))
                 {
-                    BitmapImage bitmapIconImage = new BitmapImage (new Uri (SelectedGame.IconURL));
+                    BitmapImage bitmapIconImage = new BitmapImage(new Uri(SelectedGame.IconURL));
                     bitmapIconImage.DownloadCompleted += (sender, e) =>
                     {
-                        Icon_Blur.CreateOpacityAnimation (0, 0.15f, 1);
+                        Icon_Blur.CreateOpacityAnimation(0, 0.15f, 1);
                     };
 
                     Icon_Blur.Source = bitmapIconImage;
@@ -797,45 +805,45 @@ namespace GameLauncher
                 }
 
                 // Obtener el color principal desde SelectedGame.ColorHEX
-                Color mainColor = (Color)ColorConverter.ConvertFromString (SelectedGame.ColorHEX);
-                mainColor = Color.FromArgb (90, mainColor.R, mainColor.G, mainColor.B);
+                Color mainColor = (Color)ColorConverter.ConvertFromString(SelectedGame.ColorHEX);
+                mainColor = Color.FromArgb(90, mainColor.R, mainColor.G, mainColor.B);
 
                 // Crear los colores secundarios con 10% y 0% de opacidad
-                Color secondColor = Color.FromArgb (26, mainColor.R, mainColor.G, mainColor.B);
-                Color thirdColor = Color.FromArgb (0, mainColor.R, mainColor.G, mainColor.B);
+                Color secondColor = Color.FromArgb(26, mainColor.R, mainColor.G, mainColor.B);
+                Color thirdColor = Color.FromArgb(0, mainColor.R, mainColor.G, mainColor.B);
 
                 // Crear el RadialGradientBrush con los GradientStop
-                RadialGradientBrush gradientBrush = new RadialGradientBrush ();
-                gradientBrush.GradientOrigin = new Point (0.125, 0.05);
-                gradientBrush.Center = new Point (0, 1);
+                RadialGradientBrush gradientBrush = new RadialGradientBrush();
+                gradientBrush.GradientOrigin = new Point(0.125, 0.05);
+                gradientBrush.Center = new Point(0, 1);
                 gradientBrush.RadiusX = 0.7;
                 gradientBrush.RadiusY = 0.7;
-                gradientBrush.GradientStops.Add (new GradientStop (Colors.Black, 0));
-                gradientBrush.GradientStops.Add (new GradientStop (mainColor, 0));
-                gradientBrush.GradientStops.Add (new GradientStop (secondColor, 0.35));
-                gradientBrush.GradientStops.Add (new GradientStop (thirdColor, 1));
+                gradientBrush.GradientStops.Add(new GradientStop(Colors.Black, 0));
+                gradientBrush.GradientStops.Add(new GradientStop(mainColor, 0));
+                gradientBrush.GradientStops.Add(new GradientStop(secondColor, 0.35));
+                gradientBrush.GradientStops.Add(new GradientStop(thirdColor, 1));
 
                 Blur.Opacity = 1;
-                Background_Blur.CreateOpacityAnimation (0, 1, 1);
+                Background_Blur.CreateOpacityAnimation(0, 1, 1);
 
                 Background_Blur.Fill = gradientBrush;
             }
 
             // Save Settings
             SettingsManager.Settings.LastSelectedGame = SelectedGame.Title;
-            SettingsManager.SaveSettings ();
+            SettingsManager.SaveSettings();
 
             // Fetch News
-            FetchNews ();
+            FetchNews();
 
             // Apply the new launcher status only if we are not patching the launcher
-            UpdateSelectedGameStatus (); 
+            UpdateSelectedGameStatus();
         }
 
         /// <summary>
         /// Updates the selected game status play button
         /// </summary>
-        public void UpdateSelectedGameStatus ()
+        public void UpdateSelectedGameStatus()
         {
 
             if (isPatchingLauncher || SelectedGame == null)
@@ -846,159 +854,159 @@ namespace GameLauncher
 
             if (SelectedGame.LinkOnly == true)
             {
-                SetLauncherStatus (LauncherStatus.isLinkOnly);
+                SetLauncherStatus(LauncherStatus.isLinkOnly);
                 return;
             }
 
             if (SelectedGame.IsInstalled && (patcher.Result == PatchResult.AlreadyUpToDate || patcher.Result == PatchResult.Success))
             {
-                SetLauncherStatus (LauncherStatus.play);
+                SetLauncherStatus(LauncherStatus.play);
 
             }
             else if (!SelectedGame.IsInstalled)
             {
-                SetLauncherStatus (LauncherStatus.requireInstall);
+                SetLauncherStatus(LauncherStatus.requireInstall);
             }
             else
             {
-                SetLauncherStatus (LauncherStatus.readyToUpdate);
+                SetLauncherStatus(LauncherStatus.readyToUpdate);
             }
 
         }
 
-        private void AllGamesControl_MouseDown (object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void AllGamesControl_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            SwitchTab ("Library");
+            SwitchTab("Library");
         }
 
         /// <summary>
         /// Updates the category list count number.
         /// </summary>
-        public void UpdateCategoryListsCount ()
+        public void UpdateCategoryListsCount()
         {
             // Count free to play games
-            ListElement_FreeToPlay.Count = AvailableGames.Where (x => (bool)x.IsFreeToPlay).Count ().ToString ();
+            ListElement_FreeToPlay.Count = AvailableGames.Where(x => (bool)x.IsFreeToPlay).Count().ToString();
 
             // Count multiplayer games
-            ListElement_Multiplayer.Count = AvailableGames.Where (x => (bool)x.IsMultiplayer).Count ().ToString ();
+            ListElement_Multiplayer.Count = AvailableGames.Where(x => (bool)x.IsMultiplayer).Count().ToString();
 
             // Count macOS games
-            ListElement_MacOS.Count = AvailableGames.Where (x => (bool)x.IsMacOS).Count ().ToString ();
+            ListElement_MacOS.Count = AvailableGames.Where(x => (bool)x.IsMacOS).Count().ToString();
 
             // Count mobile games
-            ListElement_Mobile.Count = AvailableGames.Where (x => (bool)x.IsMobile).Count ().ToString ();
+            ListElement_Mobile.Count = AvailableGames.Where(x => (bool)x.IsMobile).Count().ToString();
 
             // Count installed games
-            ListElement_Installed.Count = AvailableGames.Where (x => (bool)x.IsInstalled).Count ().ToString ();
+            ListElement_Installed.Count = AvailableGames.Where(x => (bool)x.IsInstalled).Count().ToString();
 
             // Count total games
-            ListElement_AllGames.Count = AvailableGames.Count.ToString ();
+            ListElement_AllGames.Count = AvailableGames.Count.ToString();
 
             // Count favorite games
-            ListElement_Favorites.Count = AvailableGames.Where (x => (bool)x.IsFavorite).Count ().ToString ();
+            ListElement_Favorites.Count = AvailableGames.Where(x => (bool)x.IsFavorite).Count().ToString();
         }
 
 
         #endregion
 
-        void UpdateRegionVersion ()
+        void UpdateRegionVersion()
         {
             if (currentRegion == "-")
             {
-                UpdateLabel(lbl_RegionVersion, string.Format (GameLauncherCore.Localization.Get (LocalizationID.MainUI_Version), currentAppVersion));
+                UpdateLabel(lbl_RegionVersion, string.Format(GameLauncherCore.Localization.Get(LocalizationID.MainUI_Version), currentAppVersion));
             }
             else
             {
-                UpdateLabel (lbl_RegionVersion, string.Format (GameLauncherCore.Localization.Get (LocalizationID.MainUI_RegionVersion), currentRegion, currentAppVersion));
+                UpdateLabel(lbl_RegionVersion, string.Format(GameLauncherCore.Localization.Get(LocalizationID.MainUI_RegionVersion), currentRegion, currentAppVersion));
             }
         }
 
         /// <summary>
         /// Refresh the UI Language and all his texts
         /// </summary>
-        public void RefreshUILanguage ()
+        public void RefreshUILanguage()
         {
             try
             {
                 /// Main UI //
                 // TopSide Options
-                TopButton_MyAccount.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_TopOptions_MyAccount);
-                TopButton_Forum.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_TopOptions_Forum);
+                TopButton_MyAccount.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_TopOptions_MyAccount);
+                //TopButton_Forum.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_TopOptions_Forum);
 
-                UpdateRegionVersion ();
+                UpdateRegionVersion();
 
                 // Main Button
                 // Bug Fix #2 - Commented because causes wrong Launcher Status
                 //SetLauncherStatus (_status);
                 if (CurrentLauncherStatus == LauncherStatus.play)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Play);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Play);
                 }
                 else if (CurrentLauncherStatus == LauncherStatus.failed)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Retry);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Retry);
 
                 }
                 else if (CurrentLauncherStatus == LauncherStatus.downloadingUpdate)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Downloading);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Downloading);
 
                 }
                 else if (CurrentLauncherStatus == LauncherStatus.patching)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Patching);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Patching);
 
                 }
                 else if (CurrentLauncherStatus == LauncherStatus.checking)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Checking);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Checking);
                 }
                 else if (CurrentLauncherStatus == LauncherStatus.readyToUpdate)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_ReadyToUpdate);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_ReadyToUpdate);
                 }
                 else if (CurrentLauncherStatus == LauncherStatus.requireInstall)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Install);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Install);
                 }
                 else if (CurrentLauncherStatus == LauncherStatus.isLinkOnly)
                 {
-                    PlayButtonText.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_IsLinkOnly);
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_IsLinkOnly);
                 }
 
                 // Links
                 // Webpage
-                lbl_Webpage.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_Links_Webpage);
-                lbl_PatchNotes.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_Links_PatchNotes);
+               // lbl_Webpage.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_Links_Webpage);
+               // lbl_PatchNotes.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_Links_PatchNotes);
 
                 // Environment
-                lbl_EnvironmentTitle.Text = GameLauncherCore.Localization.Get (LocalizationID.MainUI_EnvironmentTitle);
+                lbl_EnvironmentTitle.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_EnvironmentTitle);
 
                 // Error on Load News
-                ReloadAll_ErrorLabel.Content = Localization.Get (LocalizationID.ErrorAtGetNews);
+                ReloadAll_ErrorLabel.Content = Localization.Get(LocalizationID.ErrorAtGetNews);
 
                 // Refresh
-                RefreshAll_lbl_Reload.Content = Localization.Get (LocalizationID.Refresh);
+                RefreshAll_lbl_Reload.Content = Localization.Get(LocalizationID.Refresh);
 
-                AllGamesControl.lbl_ALLGAMES.Text = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_Topside_AllGames);
-                lbl_FAVORITES.Text = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_Topside_Favorites);
+                AllGamesControl.lbl_ALLGAMES.Text = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_Topside_AllGames);
+                lbl_FAVORITES.Text = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_Topside_Favorites);
 
-                GameSettingsDropdownButton.RefreshLanguage ();
+                GameSettingsDropdownButton.RefreshLanguage();
 
                 // Library
-                ListElement_AllGames.LabelContent = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_AllGames);
-                ListElement_FreeToPlay.LabelContent = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_FreeToPlay);
-                ListElement_Multiplayer.LabelContent = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_Multiplayer);
-                ListElement_MacOS.LabelContent = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_MacOS);
-                ListElement_Mobile.LabelContent = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_Mobile);
-                ListElement_Installed.LabelContent = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_Installed);
-                ListElement_Favorites.LabelContent = GameLauncherCore.Localization.Get (GameLauncherCore.LocalizationID.MainUI_Library_Favorites);
+                ListElement_AllGames.LabelContent = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_AllGames);
+                ListElement_FreeToPlay.LabelContent = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_FreeToPlay);
+                ListElement_Multiplayer.LabelContent = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_Multiplayer);
+                ListElement_MacOS.LabelContent = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_MacOS);
+                ListElement_Mobile.LabelContent = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_Mobile);
+                ListElement_Installed.LabelContent = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_Installed);
+                ListElement_Favorites.LabelContent = GameLauncherCore.Localization.Get(GameLauncherCore.LocalizationID.MainUI_Library_Favorites);
 
-                SearchBar.RefreshLanguage ();
+                SearchBar.RefreshLanguage();
 
-                UpdateLabelCategory ();
+                UpdateLabelCategory();
 
-                FetchNews ();
+                FetchNews();
             }
             catch { }
         }
@@ -1007,171 +1015,171 @@ namespace GameLauncher
         /// Sets the current launcher status, and hides other variables or content depending on the status
         /// </summary>
         /// <param name="status"></param>
-        void SetLauncherStatus (LauncherStatus status)
+        void SetLauncherStatus(LauncherStatus status)
         {
 
             CurrentLauncherStatus = status;
 
             // Remove Previous Click Events
-            Utility.RemoveRoutedEventHandlers (PlayButton, Button.ClickEvent);
-            UpdateVisibility (lbl_RegionVersion, Visibility.Collapsed);
+            Utility.RemoveRoutedEventHandlers(PlayButton, Button.ClickEvent);
+            UpdateVisibility(lbl_RegionVersion, Visibility.Collapsed);
 
             switch (status)
             {
                 case LauncherStatus.play:
                     UpdateLabel(statusText, "");
-                    UpdateLabel (progressTextDetail, "");
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Play));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
+                    UpdateLabel(progressTextDetail, "");
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Play));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
 
-                    UpdateRegionVersion ();
+                    UpdateRegionVersion();
 
-                    UpdateVisibility (lbl_RegionVersion, Visibility.Visible);
+                    UpdateVisibility(lbl_RegionVersion, Visibility.Visible);
 
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
 
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Visible);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Visible);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
 
                     UpdateVisibility(singleProcessProgressBar, Visibility.Hidden);
-                    UpdateVisibility (singleProcessProgressBar_Background, Visibility.Hidden);
+                    UpdateVisibility(singleProcessProgressBar_Background, Visibility.Hidden);
 
 
-                    UpdateVisibility (overallProgressBar, Visibility.Hidden);
-                    UpdateVisibility (overallProgressBar_Background, Visibility.Hidden);
+                    UpdateVisibility(overallProgressBar, Visibility.Hidden);
+                    UpdateVisibility(overallProgressBar_Background, Visibility.Hidden);
 
-                    UpdateVisibility (progressText, Visibility.Hidden);
+                    UpdateVisibility(progressText, Visibility.Hidden);
 
-                    UpdateProgressbar (singleProcessProgressBar, 0);
-                    UpdateProgressbar (overallProgressBar, 0);
-                    UpdateLabel (progressText, "");
+                    UpdateProgressbar(singleProcessProgressBar, 0);
+                    UpdateProgressbar(overallProgressBar, 0);
+                    UpdateLabel(progressText, "");
 
-                    PlayButton.Click += (s, e) => PlayButtonClicked ();
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 0, 194, 203)));
+                    PlayButton.Click += (s, e) => PlayButtonClicked();
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0, 194, 203)));
 
                     if (PlayIfServerIsOffline)
                     {
-                        RunOnMainThread (() => PlayButton.IsEnabled = true);
+                        RunOnMainThread(() => PlayButton.IsEnabled = true);
                     }
                     else
                     {
-                        RunOnMainThread (() => PlayButton.IsEnabled = false);
+                        RunOnMainThread(() => PlayButton.IsEnabled = false);
                     }
                     currentAppVersion = patcher.NewVersion;
-                    UpdateRegionVersion ();
+                    UpdateRegionVersion();
 
                     break;
                 case LauncherStatus.failed:
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Retry));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Visible);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Retry));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Visible);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
 
                     //singleProcessProgressBar.Visibility = Visibility.Hidden;
                     //overallProgressBar.Visibility = Visibility.Hidden;
                     //progressText.Visibility = Visibility.Hidden;
 
-                    PlayButton.Click += (s, e) => PatchNow ();
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 120, 0, 0)));
-                    RunOnMainThread (() => PlayButton.IsEnabled = true);
+                    PlayButton.Click += (s, e) => PatchNow();
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 120, 0, 0)));
+                    RunOnMainThread(() => PlayButton.IsEnabled = true);
                     break;
                 case LauncherStatus.downloadingUpdate:
-                    UpdateLabel(statusText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_DownloadingUpdate));
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Downloading));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Collapsed);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateLabel(statusText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_DownloadingUpdate));
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Downloading));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Collapsed);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
                     //overallProgressBar.Visibility = Visibility.Visible;
                     //progressText.Visibility = Visibility.Visible;
 
                     //PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 0, 79, 120));
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromRgb (0, 79, 120)));
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 79, 120)));
 
-                    RunOnMainThread (() => PlayButton.IsEnabled = false);
+                    RunOnMainThread(() => PlayButton.IsEnabled = false);
                     break;
                 case LauncherStatus.patching:
-                    UpdateLabel (statusText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Patching));
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Patching));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Collapsed);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateLabel(statusText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Patching));
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Patching));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Collapsed);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
                     //overallProgressBar.Visibility = Visibility.Visible;
                     //progressText.Visibility = Visibility.Visible;
 
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (32, 204, 0, 204)));
-                    RunOnMainThread (() => PlayButton.IsEnabled = false);
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(32, 204, 0, 204)));
+                    RunOnMainThread(() => PlayButton.IsEnabled = false);
                     break;
                 case LauncherStatus.checking:
-                    UpdateLabel (statusText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Checking));
-                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Checking));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Collapsed);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateLabel(statusText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Checking));
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Checking));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Collapsed);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
 
                     //overallProgressBar.Visibility = Visibility.Visible;
                     // progressText.Visibility = Visibility.Visible;
 
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (32, 201, 192, 0)));
-                    RunOnMainThread (() => PlayButton.IsEnabled = false);
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(32, 201, 192, 0)));
+                    RunOnMainThread(() => PlayButton.IsEnabled = false);
                     break;
                 case LauncherStatus.readyToUpdate:
-                    UpdateLabel (statusText, "");
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_ReadyToUpdate));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Visible);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
-                    UpdateRegionVersion ();
+                    UpdateLabel(statusText, "");
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_ReadyToUpdate));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Visible);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateRegionVersion();
 
 
-                    UpdateVisibility (lbl_RegionVersion, Visibility.Collapsed);
+                    UpdateVisibility(lbl_RegionVersion, Visibility.Collapsed);
                     //overallProgressBar.Visibility = Visibility.Collapsed;
                     //progressText.Visibility = Visibility.Collapsed;
 
-                    PlayButton.Click += (s, e) => PatchNow ();
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 0, 194, 203)));
-                    RunOnMainThread (() => PlayButton.IsEnabled = true);
+                    PlayButton.Click += (s, e) => PatchNow();
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0, 194, 203)));
+                    RunOnMainThread(() => PlayButton.IsEnabled = true);
                     break;
                 case LauncherStatus.requireInstall:
-                    UpdateLabel (statusText, "");
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Install));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Visible);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Visible);
+                    UpdateLabel(statusText, "");
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Install));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Collapsed);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Visible);
                     //overallProgressBar.Visibility = Visibility.Collapsed;
                     //progressText.Visibility = Visibility.Collapsed;
 
-                    PlayButton.Click += (s, e) => OpenInstallWindow ();
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 0, 194, 203)));
-                    RunOnMainThread (() => PlayButton.IsEnabled = true);
+                    PlayButton.Click += (s, e) => OpenInstallWindow();
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0, 194, 203)));
+                    RunOnMainThread(() => PlayButton.IsEnabled = true);
                     break;
                 case LauncherStatus.isLinkOnly:
-                    UpdateLabel (statusText, "");
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_IsLinkOnly));
-                    UpdateVisibility (PlayButtonImage, Visibility.Visible);
-                    UpdateVisibility (lbl_RegionVersion, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Collapsed);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateLabel(statusText, "");
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_IsLinkOnly));
+                    UpdateVisibility(PlayButtonImage, Visibility.Visible);
+                    UpdateVisibility(lbl_RegionVersion, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Collapsed);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
                     //overallProgressBar.Visibility = Visibility.Collapsed;
                     //progressText.Visibility = Visibility.Collapsed;
 
                     PlayButton.Click += (s, e) => Utility.OpenURL(WEBPAGE_URL);
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 0, 194, 203)));
-                    RunOnMainThread (() => PlayButton.IsEnabled = true);
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0, 194, 203)));
+                    RunOnMainThread(() => PlayButton.IsEnabled = true);
                     break;
                 default:
                     //statusText.Text = "Update Failed";
-                    UpdateLabel (PlayButtonText, GameLauncherCore.Localization.Get (LocalizationID.MainUI_MainButtonState_Retry));
-                    UpdateVisibility (PlayButtonImage, Visibility.Collapsed);
-                    UpdateVisibility (GameSettingsDropdownButton, Visibility.Collapsed);
-                    UpdateVisibility (AlreadyInstalledContent, Visibility.Collapsed);
+                    UpdateLabel(PlayButtonText, GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_Retry));
+                    UpdateVisibility(PlayButtonImage, Visibility.Collapsed);
+                    UpdateVisibility(GameSettingsDropdownButton, Visibility.Collapsed);
+                    UpdateVisibility(AlreadyInstalledContent, Visibility.Collapsed);
 
                     //singleProcessProgressBar.Visibility = Visibility.Hidden;
                     //overallProgressBar.Visibility = Visibility.Hidden;
                     //progressText.Visibility = Visibility.Hidden;
 
-                    PlayButton.Click += (s, e) => PatchNow ();
-                    RunOnMainThread (() => PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 120, 0, 0)));
-                    RunOnMainThread (() => PlayButton.IsEnabled = true);
+                    PlayButton.Click += (s, e) => PatchNow();
+                    RunOnMainThread(() => PlayButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 120, 0, 0)));
+                    RunOnMainThread(() => PlayButton.IsEnabled = true);
                     break;
             }
         }
@@ -1179,16 +1187,16 @@ namespace GameLauncher
         /// <summary>
         /// Patch button action (PlayButton uses this and PlayButtonAction)
         /// </summary>
-        public async void PatchNow ()
+        public async void PatchNow()
         {
             if (patcher != null && !patcher.IsRunning)
             {
 
                 // Initalize patcher
 
-                if (StartLauncherPatch ())
+                if (StartLauncherPatch())
                 {
-                    StartMainAppPatch (false);
+                    StartMainAppPatch(false);
                 }
             }
 
@@ -1201,22 +1209,22 @@ namespace GameLauncher
         /// <summary>
         /// Repair button action
         /// </summary>
-        public void RepairButtonClicked (object sender = null, MouseButtonEventArgs e = null)
+        public void RepairButtonClicked(object sender = null, MouseButtonEventArgs e = null)
         {
-            StartMainAppPatch (false);
+            StartMainAppPatch(false);
         }
 
         /// <summary>
         /// Play button action (PlayButton uses this and PlayButtonAction)
         /// </summary>
-        public void PlayButtonClicked ()
+        public void PlayButtonClicked()
         {
             if (patcher != null && patcher.IsRunning && patcher.Operation != PatchOperation.CheckingForUpdates)
                 return;
 
 
             // Get the current game app to execute
-            FileInfo mainApp = new FileInfo (System.IO.Path.Combine (mainAppDirectory, CURRENT_MAINAPP_EXECUTABLE));
+            FileInfo mainApp = new FileInfo(System.IO.Path.Combine(mainAppDirectory, SelectedGame.ExecutableName));
 
             // Check if exists
             if (mainApp.Exists)
@@ -1224,35 +1232,38 @@ namespace GameLauncher
 
                 // Use default launch args
                 string launchArgs = SelectedGame.DefaultLaunchArgs;
-
+                launchArgs += " launcherCode=" + Utility.GetLauncherCode();
+                launchArgs += " licenseKey=" + SelectedGame.LicenseKey;
                 // Add additional launch args
-                if (SelectedGame.UseAdditionalLaunchArgs) {
+                if (SelectedGame.UseAdditionalLaunchArgs)
+                {
                     launchArgs += " " + SelectedGame.AdditionalLaunchArgs;
                 }
 
                 // Execute app
-                Process.Start (new ProcessStartInfo (mainApp.FullName)
-                { WorkingDirectory = mainApp.DirectoryName,
-                  Arguments = launchArgs
+                Process.Start(new ProcessStartInfo(mainApp.FullName)
+                {
+                    WorkingDirectory = mainApp.DirectoryName,
+                    Arguments = launchArgs
                 });
 
                 // Stop slideshow
-                PlaySlideShow (false);
+                PlaySlideShow(false);
 
                 // Save the last played time
                 SelectedGame.LastPlayedDate = DateTime.Now;
 
                 // Save games info
-                SaveGamesInfo ();
+                SaveGamesInfo();
 
                 // On AppLaunch Action
                 switch (SettingsManager.Settings.OnAppLaunchAction)
                 {
                     case 1:
-                        ButtonMinimize_Click ();
+                        ButtonMinimize_Click();
                         break;
                     case 2:
-                        Close ();
+                        Close();
                         break;
                     default:
                         // Keep open
@@ -1261,36 +1272,38 @@ namespace GameLauncher
 
 
 
-  
+
             }
             else // The file to open doesn't exists
             {
-                UpdateLabel (statusText, GameLauncherCore.Localization.Get (LocalizationID.E_XDoesNotExist, CURRENT_MAINAPP_EXECUTABLE));
-                SetLauncherStatus (LauncherStatus.failed);
+                UpdateLabel(statusText, GameLauncherCore.Localization.Get(LocalizationID.E_XDoesNotExist, SelectedGame.Title + ".exe"));
+                SetLauncherStatus(LauncherStatus.failed);
             }
         }
 
         /// <summary>
         /// Show current game in explorer
         /// </summary>
-        public void ShowGameInExplorerClicked (object sender = null, MouseButtonEventArgs e = null)
+        public void ShowGameInExplorerClicked(object sender = null, MouseButtonEventArgs e = null)
         {
             // Try to open the install path of the game
-            
-            // Check if install path exists
-            if (Directory.Exists (SelectedGame.InstallPath))
-            {
-                Utility.OpenURL (SelectedGame.InstallPath);
 
-            } else if (Directory.Exists (System.IO.Path.Combine (Directory.GetCurrentDirectory(), MAINAPP_SUBDIRECTORY, SelectedGame.Title)))
+            // Check if install path exists
+            if (Directory.Exists(SelectedGame.InstallPath))
+            {
+                Utility.OpenURL(SelectedGame.InstallPath);
+
+            }
+            else if (Directory.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), MAINAPP_SUBDIRECTORY, SelectedGame.Title)))
             {
                 // Open default game path
-                string defaultGamePath = System.IO.Path.Combine (Directory.GetCurrentDirectory(), MAINAPP_SUBDIRECTORY, SelectedGame.Title);
-                Utility.OpenURL (defaultGamePath);
-            } else // Just open the ap directory
+                string defaultGamePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), MAINAPP_SUBDIRECTORY, SelectedGame.Title);
+                Utility.OpenURL(defaultGamePath);
+            }
+            else // Just open the ap directory
             {
                 // Open launcher path
-                Utility.OpenURL (Directory.GetCurrentDirectory());
+                Utility.OpenURL(Directory.GetCurrentDirectory());
             }
 
         }
@@ -1300,32 +1313,32 @@ namespace GameLauncher
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void ShowGameSettingsClicked (object sender = null, EventArgs e = null)
+        public void ShowGameSettingsClicked(object sender = null, EventArgs e = null)
         {
-            var gameSettings = new GameSettings (ref SelectedGame);
-            gameSettings.ShowDialog ();
+            var gameSettings = new GameSettings(ref SelectedGame);
+            gameSettings.ShowDialog();
         }
 
         /// <summary>
         /// Report button action
         /// </summary>
-        public void ReportBugButtonClicked ()
+        public void ReportBugButtonClicked()
         {
             // Open link
-            Utility.OpenURL (REPORT_BUG_URL);
+            Utility.OpenURL(REPORT_BUG_URL);
         }
 
         /// <summary>
         /// Starts the launcher patch action
         /// </summary>
         /// <returns>Returns true if the action was completed correctly</returns>
-        public bool StartLauncherPatch ()
+        public bool StartLauncherPatch()
         {
-            if (string.IsNullOrEmpty (LAUNCHER_VERSIONINFO_URL) || LAUNCHER_VERSIONINFO_URL == "URL" || !Utility.URLExists (LAUNCHER_VERSIONINFO_URL))
+            if (string.IsNullOrEmpty(LAUNCHER_VERSIONINFO_URL) || LAUNCHER_VERSIONINFO_URL == "URL" || !Utility.URLExists(LAUNCHER_VERSIONINFO_URL))
             {
-                UpdateLabel (statusText, "Please set a valid URL to LAUNCHER_VERSIONINFO_URL");
+                UpdateLabel(statusText, "Please set a valid URL to LAUNCHER_VERSIONINFO_URL");
 
-                SetLauncherStatus (LauncherStatus.failed);
+                SetLauncherStatus(LauncherStatus.failed);
 
                 return false;
             }
@@ -1335,8 +1348,8 @@ namespace GameLauncher
 
             isPatchingLauncher = true;
 
-            patcher = new GameLauncherPatcher (launcherDirectory, LAUNCHER_VERSIONINFO_URL).SetListener (patcherListener);
-            CheckForUpdates (true);
+            patcher = new GameLauncherPatcher(launcherDirectory, LAUNCHER_VERSIONINFO_URL).SetListener(patcherListener);
+            CheckForUpdates(true);
 
             return true;
         }
@@ -1346,12 +1359,12 @@ namespace GameLauncher
         /// </summary>
         /// <param name="checkForUpdates"></param>
         /// <returns>Returns true if the action was completed correctly</returns>
-        public async Task<bool> StartMainAppPatch (bool checkForUpdates)
+        public async Task<bool> StartMainAppPatch(bool checkForUpdates)
         {
-            if (string.IsNullOrEmpty (MAINAPP_VERSIONINFO_URL) || MAINAPP_VERSIONINFO_URL == "URL" || !(await Utility.URLExistsAsync (MAINAPP_VERSIONINFO_URL)))
+            if (string.IsNullOrEmpty(MAINAPP_VERSIONINFO_URL) || MAINAPP_VERSIONINFO_URL == "URL" || !(await Utility.URLExistsAsync(MAINAPP_VERSIONINFO_URL)))
             {
-                UpdateLabel (statusText, "Please set a valid URL to MAINAPP_VERSIONINFO_URL");
-                SetLauncherStatus (LauncherStatus.failed);
+                UpdateLabel(statusText, "Please set a valid URL to MAINAPP_VERSIONINFO_URL");
+                SetLauncherStatus(LauncherStatus.failed);
                 return false;
             }
 
@@ -1360,12 +1373,12 @@ namespace GameLauncher
 
             isPatchingLauncher = false;
 
-            patcher = new GameLauncherPatcher (mainAppDirectory, MAINAPP_VERSIONINFO_URL).SetListener (patcherListener);
+            patcher = new GameLauncherPatcher(mainAppDirectory, MAINAPP_VERSIONINFO_URL).SetListener(patcherListener);
 
             if (checkForUpdates)
-                CheckForUpdates (CheckVersionOnly);
+                CheckForUpdates(CheckVersionOnly);
             else
-                ExecutePatch ();
+                ExecutePatch();
 
             return true;
         }
@@ -1377,42 +1390,42 @@ namespace GameLauncher
         /// | false: hashes and sizes of the local files are compared against VersionInfo (if there are any different/missing files, we'll patch the app)
         /// </summary>
         /// <param name="checkVersionOnly"></param>
-        private void CheckForUpdates (bool checkVersionOnly)
+        private void CheckForUpdates(bool checkVersionOnly)
         {
-            if (patcher.CheckForUpdates (checkVersionOnly))
+            if (patcher.CheckForUpdates(checkVersionOnly))
             {
-                SetLauncherStatus (LauncherStatus.checking);
+                SetLauncherStatus(LauncherStatus.checking);
             }
 
             if (isFirstTimeCheckForUpdates)
             {
                 isFirstTimeCheckForUpdates = false;
-                timer = new Timer (OnTimerCallback, null, TimeSpan.FromMinutes (CheckForUpdatesInterval), TimeSpan.FromMinutes (CheckForUpdatesInterval));
+                timer = new Timer(OnTimerCallback, null, TimeSpan.FromMinutes(CheckForUpdatesInterval), TimeSpan.FromMinutes(CheckForUpdatesInterval));
             }
         }
 
         /// <summary>
         /// Execute patch action
         /// </summary>
-        private void ExecutePatch ()
+        private void ExecutePatch()
         {
             if (patcher.Operation == PatchOperation.ApplyingSelfPatch)
             {
-                RunOnMainThread (() => SetLauncherStatus (LauncherStatus.patching));
-                ApplySelfPatch ();
+                RunOnMainThread(() => SetLauncherStatus(LauncherStatus.patching));
+                ApplySelfPatch();
             }
-            else if (patcher.Run (isPatchingLauncher))
+            else if (patcher.Run(isPatchingLauncher))
             {
-                RunOnMainThread (() => SetLauncherStatus (LauncherStatus.patching));
+                RunOnMainThread(() => SetLauncherStatus(LauncherStatus.patching));
             }
         }
 
         /// <summary>
         /// Apply self patch action
         /// </summary>
-        private void ApplySelfPatch ()
+        private void ApplySelfPatch()
         {
-            patcher.ApplySelfPatch (selfPatcherPath, PatchUtils.GetCurrentExecutablePath ());
+            patcher.ApplySelfPatch(selfPatcherPath, PatchUtils.GetCurrentExecutablePath());
         }
 
         bool appNeedCheckUpdate = false;
@@ -1420,13 +1433,13 @@ namespace GameLauncher
         /// <summary>
         /// Check for updates. If the launcher is already up to date, check for updates in the app.
         /// </summary>
-        private void CheckForUpdatesFinished ()
+        private void CheckForUpdatesFinished()
         {
             // MessageBox.Show ($"Failed: {patcher.Result.ToString()}");
 
             if (patcher.Result == PatchResult.AlreadyUpToDate)
             {
-        
+
                 // If the launcher is already up to date, check for updates in the app
                 if (isPatchingLauncher)
                 {
@@ -1439,28 +1452,30 @@ namespace GameLauncher
 
                     if (SelectedGame.IsInstalled && SelectedGame.AutomaticUpdates)
                     {
-                        StartMainAppPatch (false);
+                        StartMainAppPatch(false);
                     }
                     else if (SelectedGame.IsInstalled)
                     {
-                        RunOnMainThread (() =>
+                        RunOnMainThread(() =>
                         {
-                            StartMainAppPatch (true);
+                            StartMainAppPatch(true);
                             //SetLauncherStatus (LauncherStatus.readyToUpdate);
                         });
-                    } else
+                    }
+                    else
                     {
-                        RunOnMainThread (() =>
+                        RunOnMainThread(() =>
                         {
-                            SetLauncherStatus (LauncherStatus.requireInstall);
+                            SetLauncherStatus(LauncherStatus.requireInstall);
                         });
                     }
-                } else // If app is up to date, change the button status
+                }
+                else // If app is up to date, change the button status
                 {
-                    RunOnMainThread (() =>
+                    RunOnMainThread(() =>
                     {
                         // SetLauncherStatus (LauncherStatus.play);
-                        UpdateSelectedGameStatus ();
+                        UpdateSelectedGameStatus();
 
                         // Create a desktop icon?
                         //CreateDesktopIcon ();
@@ -1471,8 +1486,9 @@ namespace GameLauncher
             else if (patcher.Result == PatchResult.Success) // Update available
             {
 
-                if (isPatchingLauncher) {
-                    ExecutePatch ();
+                if (isPatchingLauncher)
+                {
+                    ExecutePatch();
                     return;
                 }
 
@@ -1485,15 +1501,15 @@ namespace GameLauncher
                 //if (UpdateAutomatically || !SelectedGame.IsInstalled) // Using global settings
                 if (SelectedGame.AutomaticUpdates && SelectedGame.IsInstalled) // Using game settings
                 {
-                    PatchNow ();
+                    PatchNow();
                 }
                 else
                 {
 
-                    RunOnMainThread (() =>
+                    RunOnMainThread(() =>
                     {
                         // SetLauncherStatus (LauncherStatus.play);
-                        UpdateSelectedGameStatus ();
+                        UpdateSelectedGameStatus();
 
                         // Create a desktop icon?
                         //CreateDesktopIcon ();
@@ -1506,7 +1522,7 @@ namespace GameLauncher
                 // An error occurred, user can click the Patch button to try again
                 //ButtonSetEnabled (patchButton, true);
                 //MessageBox.Show ("Failed");
-                RunOnMainThread (() => SetLauncherStatus (LauncherStatus.failed));
+                RunOnMainThread(() => SetLauncherStatus(LauncherStatus.failed));
                 //PatchButtonClicked ();
             }
         }
@@ -1514,7 +1530,7 @@ namespace GameLauncher
         /// <summary>
         /// Patch finished actions.
         /// </summary>
-        private void PatchFinished ()
+        private void PatchFinished()
         {
             //ButtonSetEnabled (PlayButton, true);
             //MessageBox.Show ("Failed");
@@ -1526,10 +1542,10 @@ namespace GameLauncher
                     isPatchingLauncher = false;
                 }
 
-                RunOnMainThread (() =>
+                RunOnMainThread(() =>
                 {
                     // SetLauncherStatus (LauncherStatus.play);
-                    UpdateSelectedGameStatus ();
+                    UpdateSelectedGameStatus();
 
                     // Create a desktop icon?
                     //CreateDesktopIcon ();
@@ -1541,17 +1557,17 @@ namespace GameLauncher
                 // Otherwise, we have just updated the main app successfully
                 if (patcher.Operation == PatchOperation.SelfPatching)
                 {
-                    ApplySelfPatch ();
+                    ApplySelfPatch();
                 }
                 else
                 {
 
                     SelectedGame.IsInstalled = true;
 
-                    RunOnMainThread (() =>
+                    RunOnMainThread(() =>
                     {
                         //SetLauncherStatus (LauncherStatus.play);
-                        UpdateSelectedGameStatus ();
+                        UpdateSelectedGameStatus();
 
                         // Create a desktop icon?
                         //CreateDesktopIcon ();
@@ -1564,9 +1580,9 @@ namespace GameLauncher
                 // ButtonSetEnabled (patchButton, true);
                 //PlayButton.Background = new SolidColorBrush (System.Windows.Media.Color.FromArgb (255, 0, 120, 49));
                 //MessageBox.Show ("Failed");
-                RunOnMainThread (() =>
+                RunOnMainThread(() =>
                 {
-                    SetLauncherStatus (LauncherStatus.failed);
+                    SetLauncherStatus(LauncherStatus.failed);
                 });
 
             }
@@ -1575,34 +1591,34 @@ namespace GameLauncher
         /// <summary>
         /// Creates a desktop icon
         /// </summary>
-        public void CreateDesktopIcon ()
+        public void CreateDesktopIcon()
         {
             // File path to the game executable
             string filePath = SelectedGame.InstallPath;
 
             // Get the path to the public desktop folder
-            string publicDesktopPath = Environment.GetFolderPath (Environment.SpecialFolder.DesktopDirectory);
+            string publicDesktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
 
             // Create a FileInfo object for the shortcut file
-            FileInfo shortcutFileInfo = new FileInfo (System.IO.Path.Combine (publicDesktopPath, $"{SelectedGame.Title}.lnk"));
+            FileInfo shortcutFileInfo = new FileInfo(System.IO.Path.Combine(publicDesktopPath, $"{SelectedGame.Title}.lnk"));
 
             // Download the icon from the URL and save it to a temporary file
-            string iconFilePath = System.IO.Path.Combine (System.IO.Path.GetTempPath (), $"{SelectedGame.Title}.ico");
-            using (WebClient client = new WebClient ())
+            string iconFilePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{SelectedGame.Title}.ico");
+            using (WebClient client = new WebClient())
             {
-                client.DownloadFile (SelectedGame.IconURL, iconFilePath);
+                client.DownloadFile(SelectedGame.IconURL, iconFilePath);
             }
 
 
             // Create a StreamWriter to write to the shortcut file
-            using (StreamWriter writer = new StreamWriter (shortcutFileInfo.FullName))
+            using (StreamWriter writer = new StreamWriter(shortcutFileInfo.FullName))
             {
                 // Write the contents of the shortcut file
-                writer.WriteLine ("[InternetShortcut]");
-                writer.WriteLine ($"URL=file:///{filePath.Replace ('\\', '/')}");
-                writer.WriteLine ($"IconIndex=0");
-                writer.WriteLine ($"IconFile={iconFilePath}");
-                writer.Flush ();
+                writer.WriteLine("[InternetShortcut]");
+                writer.WriteLine($"URL=file:///{filePath.Replace('\\', '/')}");
+                writer.WriteLine($"IconIndex=0");
+                writer.WriteLine($"IconFile={iconFilePath}");
+                writer.Flush();
             }
 
             //MessageBox.Show ("Created Desktop Icon");
@@ -1611,7 +1627,7 @@ namespace GameLauncher
         /// <summary>
         /// Fetch the current news based in the current language and selected environment
         /// </summary>
-        private async void FetchNews ()
+        private async void FetchNews()
         {
 
             if (SelectedGame == null)
@@ -1627,8 +1643,8 @@ namespace GameLauncher
             Right_Panel.Visibility = Visibility.Visible;
 
             // Begin news skeleton animation
-            Storyboard sb = FindResource ("NewsLoadingAnimation") as Storyboard;
-            sb.Begin ();
+            Storyboard sb = FindResource("NewsLoadingAnimation") as Storyboard;
+            sb.Begin();
 
             // Hide news containers
             //NewsContent_ScrollViewer.Visibility = Visibility.Collapsed;
@@ -1636,31 +1652,31 @@ namespace GameLauncher
             RefreshAll_Container.Visibility = Visibility.Collapsed;
 
             // Clear current lists
-            slideShowRectanglesList.Clear ();
-            subNewsControlList.Clear ();
+            slideShowRectanglesList.Clear();
+            subNewsControlList.Clear();
 
-            if (NewsSlideshow.SlideShow_MiniButtonList != null)
+           // if (NewsSlideshow.SlideShow_MiniButtonList != null)
             {
-                NewsSlideshow.SlideShow_MiniButtonList.Children.RemoveRange (0, NewsSlideshow.SlideShow_MiniButtonList.Children.Count);
+               // NewsSlideshow.SlideShow_MiniButtonList.Children.RemoveRange(0, NewsSlideshow.SlideShow_MiniButtonList.Children.Count);
             }
             if (Content_Inferior != null)
             {
-                Content_Inferior.Children.RemoveRange (0, Content_Inferior.Children.Count);
+                Content_Inferior.Children.RemoveRange(0, Content_Inferior.Children.Count);
             }
 
             // Get Selected Game News by language and environment
             NEWS_CURRENT_URL = HOST_URL + $"News/{SelectedGame.Title}/{CurrentSelectedEnvironment}/{Localization.CurrentLanguageISOCode}_{CurrentSelectedEnvironment}_News.txt";
 
-            Debug.WriteLine (new Uri (NEWS_CURRENT_URL).AbsoluteUri);
+            Debug.WriteLine(new Uri(NEWS_CURRENT_URL).AbsoluteUri);
 
             string url = NEWS_CURRENT_URL;
 
-            string content = await Utility.DownloadTextFileAsync (NEWS_CURRENT_URL);
+            string content = await Utility.DownloadTextFileAsync(NEWS_CURRENT_URL);
 
             // Deserialize JSON
-            if (!string.IsNullOrEmpty (content))
+            if (!string.IsNullOrEmpty(content))
             {
-                newsContent = JsonSerializer.Deserialize<NewsContent> (content, new JsonSerializerOptions () { PropertyNameCaseInsensitive = true });
+                newsContent = JsonSerializer.Deserialize<NewsContent>(content, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
 
                 // Update SlideShow
                 currentNewsElement = 0;
@@ -1669,15 +1685,15 @@ namespace GameLauncher
                 if (newsContent.News.Count == 0)
                 {
                     // No news available
-                    NewsSlideshow.Content_Superior.Visibility = Visibility.Collapsed;
-                    NewsSlideshow.SlideShow_Content.Visibility = Visibility.Collapsed;
+                    //NewsSlideshow.Content_Superior.Visibility = Visibility.Collapsed;
+                    //NewsSlideshow.SlideShow_Content.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    NewsSlideshow.Content_Superior.Visibility = Visibility.Visible;
-                    NewsSlideshow.SlideShow_Content.Visibility = Visibility.Visible;
+                    //NewsSlideshow.Content_Superior.Visibility = Visibility.Visible;
+                   // NewsSlideshow.SlideShow_Content.Visibility = Visibility.Visible;
 
-                    UpdateNewsElement (newsContent.News[currentNewsElement]);
+                    //UpdateNewsElement(newsContent.News[currentNewsElement]);
 
                     // Create SlideShow Button List
                     for (int i = 0; i < newsContent.News.Count; i++)
@@ -1685,19 +1701,19 @@ namespace GameLauncher
                         //CreateNewsElement (newsContent.News[i]);
                         Rectangle slideShowButton = new Rectangle
                         {
-                            Fill = new SolidColorBrush ((Color)ColorConverter.ConvertFromString ("#FFA4A4A4")),
+                            Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFA4A4A4")),
 
                             RadiusX = 10,
                             RadiusY = 10,
 
-                            Width = Math.Clamp (200 / newsContent.News.Count, 25, 100),
+                            Width = Math.Clamp(200 / newsContent.News.Count, 25, 100),
                             Height = 15,
 
-                            Margin = new Thickness (0, 0, 5, 0),
+                            Margin = new Thickness(0, 0, 5, 0),
 
                             Cursor = Cursors.Hand,
 
-                            Style = FindResource ("SlideShowButtonsStyle") as Style
+                            Style = FindResource("SlideShowButtonsStyle") as Style
                         };
 
                         int index = i;
@@ -1706,36 +1722,36 @@ namespace GameLauncher
                         {
                             if (newsContent.News.Count > 0)
                             {
-                                UpdateNewsElement (newsContent.News[index]);
+                                //UpdateNewsElement(newsContent.News[index]);
                             }
 
                             currentNewsElement = index;
-                            SlideShow_RefillColor ();
-                            PlaySlideShow (false);
+                            SlideShow_RefillColor();
+                            PlaySlideShow(false);
                         };
 
                         //#FF0085FF
                         //#FFA4A4A4
 
-                        NewsSlideshow.SlideShow_MiniButtonList.Children.Add (slideShowButton);
+                       // NewsSlideshow.SlideShow_MiniButtonList.Children.Add(slideShowButton);
 
-                        slideShowRectanglesList.Add (slideShowButton);
+                        slideShowRectanglesList.Add(slideShowButton);
                     }
 
-                    SlideShow_RefillColor ();
+                    SlideShow_RefillColor();
 
-                    NewsSlideshow.SlideShow_Button.Click += SlideShow_Button_Click;
+                   // NewsSlideshow.SlideShow_Button.Click += SlideShow_Button_Click;
 
                     // Start SlideShow
-                    SlideShow_RefillColor ();
-                    PlaySlideShow (true);
+                    SlideShow_RefillColor();
+                    PlaySlideShow(true);
                 }
 
                 // Update server status
-                FetchServerStatus (newsContent);
+                FetchServerStatus(newsContent);
 
                 // Update alert
-                FetchAlertNotification (newsContent);
+                FetchAlertNotification(newsContent);
 
                 // Update URLS
                 MY_ACCOUNT_URL = newsContent.MyAccountURL;
@@ -1750,12 +1766,12 @@ namespace GameLauncher
                 // Create SubNews
                 for (int i = 0; i < newsContent.SubNews.Count; i++)
                 {
-                    CreateSubNewsElement (newsContent.SubNews[i]);
+                    CreateSubNewsElement(newsContent.SubNews[i]);
                 }
 
                 LoadingContent_ScrollViewer.Visibility = Visibility.Hidden;
                 Right_Panel.Visibility = Visibility.Visible;
-                sb.Stop ();
+                sb.Stop();
             }
             else // Error
             {
@@ -1769,37 +1785,37 @@ namespace GameLauncher
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SlideShow_Button_Click (object sender, RoutedEventArgs e)
+        private void SlideShow_Button_Click(object sender, RoutedEventArgs e)
         {
-            PlaySlideShow (!isSlideshowPlaying);
+            PlaySlideShow(!isSlideshowPlaying);
         }
 
         /// <summary>
         /// Set Slideshow play or pause state
         /// </summary>
         /// <param name="play"></param>
-        private void PlaySlideShow (bool play)
+        private void PlaySlideShow(bool play)
         {
             if (timerSlideShow != null)
             {
-                timerSlideShow.Stop ();
+                timerSlideShow.Stop();
             }
 
             isSlideshowPlaying = play;
 
             if (!play)
             {
-                NewsSlideshow.SlideShow_Button_Image.Source = new BitmapImage (new Uri (@"pack://application:,,,/Resources/Icons/Actions/action_play_white.png"));
+               // NewsSlideshow.SlideShow_Button_Image.Source = new BitmapImage(new Uri(@"pack://application:,,,/Resources/Icons/Actions/action_play_white.png"));
             }
             else
             {
-                NewsSlideshow.SlideShow_Button_Image.Source = new BitmapImage (new Uri (@"pack://application:,,,/Resources/Icons/Actions/action_pause_white.png"));
+              //  NewsSlideshow.SlideShow_Button_Image.Source = new BitmapImage(new Uri(@"pack://application:,,,/Resources/Icons/Actions/action_pause_white.png"));
 
-                timerSlideShow = new DispatcherTimer { Interval = TimeSpan.FromSeconds (5) };
-                timerSlideShow.Start ();
+                timerSlideShow = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+                timerSlideShow.Start();
                 timerSlideShow.Tick += (sender, args) =>
                 {
-                    NextNewsElement ();
+                    NextNewsElement();
                 };
             }
         }
@@ -1807,17 +1823,17 @@ namespace GameLauncher
         /// <summary>
         /// Refills the color in the slideshow
         /// </summary>
-        private void SlideShow_RefillColor ()
+        private void SlideShow_RefillColor()
         {
             foreach (Rectangle rectangle in slideShowRectanglesList)
             {
-                rectangle.Fill = new SolidColorBrush ((Color)ColorConverter.ConvertFromString ("#FFA4A4A4"));
+                rectangle.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFA4A4A4"));
             }
 
             // Fill rectangle color
             if (currentNewsElement < slideShowRectanglesList.Count)
             {
-                slideShowRectanglesList[currentNewsElement].Fill = new SolidColorBrush ((Color)ColorConverter.ConvertFromString ("#FF0085FF"));
+                slideShowRectanglesList[currentNewsElement].Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF0085FF"));
             }
 
         }
@@ -1826,15 +1842,15 @@ namespace GameLauncher
         /// Show the next or previous element in the news slideshow. Next = false is equal to previous
         /// </summary>
         /// <param name="next"></param>
-        private void NextNewsElement (bool next = true)
+        private void NextNewsElement(bool next = true)
         {
-            var exists = slideShowRectanglesList.ElementAtOrDefault (currentNewsElement) != null;
+            var exists = slideShowRectanglesList.ElementAtOrDefault(currentNewsElement) != null;
 
             if (!exists || newsContent.News.Count == 1)
             { return; }
 
             // Take out the color
-            slideShowRectanglesList[currentNewsElement].Fill = new SolidColorBrush ((Color)ColorConverter.ConvertFromString ("#FFA4A4A4"));
+            slideShowRectanglesList[currentNewsElement].Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFA4A4A4"));
 
             if (next)
             {
@@ -1860,61 +1876,61 @@ namespace GameLauncher
             }
 
             // Fill rectangle color
-            slideShowRectanglesList[currentNewsElement].Fill = new SolidColorBrush ((Color)ColorConverter.ConvertFromString ("#FF0085FF"));
+            slideShowRectanglesList[currentNewsElement].Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF0085FF"));
 
             // Update element
-            UpdateNewsElement (newsContent.News[currentNewsElement]);
+            //UpdateNewsElement(newsContent.News[currentNewsElement]);
         }
 
-        private async void UpdateNewsElement (News news)
+   /*     private async void UpdateNewsElement(News news)
         {
 
-            Utility.CreateOpacityAnimation (NewsSlideshow.Content_Superior, 1, 0, 0.5f);
+           // Utility.CreateOpacityAnimation(NewsSlideshow.Content_Superior, 1, 0, 0.5f);
 
-            await Task.Delay (500);
+            await Task.Delay(500);
 
             // Show news content?
             if (news != null && news.showContent == true)
             {
 
                 // We have a video URL? && show video?
-                if (!string.IsNullOrEmpty (news.videoURL) && news.showVideo == true)
+                if (!string.IsNullOrEmpty(news.videoURL) && news.showVideo == true)
                 {
 
-                    _browser.Visibility = Visibility.Visible;
+                    //_browser.Visibility = Visibility.Visible;
 
                     // Get VideoID from Youtube URL
-                    var videoId = Utility.ExtractIDFromYoutubeURL (news.videoURL);
+                    var videoId = Utility.ExtractIDFromYoutubeURL(news.videoURL);
 
                     // Get and Display Video Thumbnail (new)
-                    NewsSlideshow.mediaElement.Source = new Uri (Utility.GetVideoThumbnail (videoId));
+                  //  NewsSlideshow.mediaElement.Source = new Uri(Utility.GetVideoThumbnail(videoId));
 
                     // Set Video to the Browser VideoPlayer
-                    if (this._browser != null)
+                   // if (this._browser != null)
                     {
-                        _browser.Address = string.Format ("https://www.youtube-nocookie.com/embed/{0}", videoId);
+                       // _browser.Address = string.Format("https://www.youtube-nocookie.com/embed/{0}", videoId);
                     }
 
                     // Play on load
-                    NewsSlideshow.mediaElement.LoadedBehavior = MediaState.Play;
+                  //  NewsSlideshow.mediaElement.LoadedBehavior = MediaState.Play;
                 }
                 else
                 {
 
                     // Disable Browser (Video Player)
-                    _browser.Visibility = Visibility.Collapsed;
+                   // _browser.Visibility = Visibility.Collapsed;
 
                     // Set interaction URL if we have one
-                    if (!string.IsNullOrEmpty (news.interactionURL))
+                    if (!string.IsNullOrEmpty(news.interactionURL))
                     {
 
                         // Only add one time
                         if (mouseButtonEventHandler == null)
                         {
-                            mouseButtonEventHandler = (s, e) => { Utility.OpenURL (news.interactionURL); };
-                            NewsSlideshow.mediaElement.MouseDown += mouseButtonEventHandler;
+                            mouseButtonEventHandler = (s, e) => { Utility.OpenURL(news.interactionURL); };
+                         //   NewsSlideshow.mediaElement.MouseDown += mouseButtonEventHandler;
                         }
-                        NewsSlideshow.mediaElement.Cursor = Cursors.Hand;
+                       // NewsSlideshow.mediaElement.Cursor = Cursors.Hand;
                     }
                     else
                     {
@@ -1922,30 +1938,30 @@ namespace GameLauncher
                         // Disable interaction URL
                         if (mouseButtonEventHandler != null)
                         {
-                            NewsSlideshow.mediaElement.MouseDown -= mouseButtonEventHandler;
+                        //   NewsSlideshow.mediaElement.MouseDown -= mouseButtonEventHandler;
                         }
 
-                        NewsSlideshow.mediaElement.Cursor = null;
+                      //  NewsSlideshow.mediaElement.Cursor = null;
                     }
 
                     try
                     {
                         // Set element
-                        NewsSlideshow.mediaElement.Source = new Uri (news.imagesURL[0]);
+                       // NewsSlideshow.mediaElement.Source = new Uri(news.imagesURL[0]);
                     }
                     catch
                     {
                         // If the URL is incorrect or the image cannot be loaded
                         // Render null
-                        NewsSlideshow.mediaElement.Source = null;
+                      //  NewsSlideshow.mediaElement.Source = null;
                     }
                 }
 
                 // Show Header
                 if (news.showHeader == true)
                 {
-                    NewsSlideshow.News_Header.Visibility = Visibility.Visible;
-                    UpdateLabel (NewsSlideshow.News_Header, news.header);
+                  // NewsSlideshow.News_Header.Visibility = Visibility.Visible;
+                   // UpdateLabel(NewsSlideshow.News_Header, news.header);
                 }
                 else
                 {
@@ -1955,27 +1971,27 @@ namespace GameLauncher
                 // Show Title
                 if (news.showTitle == true)
                 {
-                    NewsSlideshow.News_Actual_Title.Visibility = Visibility.Visible;
-                    UpdateLabel (NewsSlideshow.News_Actual_Title, news.title);
+                   // NewsSlideshow.News_Actual_Title.Visibility = Visibility.Visible;
+                  // UpdateLabel(NewsSlideshow.News_Actual_Title, news.title);
                 }
                 else
                 {
-                    NewsSlideshow.News_Actual_Title.Visibility = Visibility.Collapsed;
+                  //  NewsSlideshow.News_Actual_Title.Visibility = Visibility.Collapsed;
                 }
 
                 // Show SubTitle
                 if (news.showSubTitle == true)
                 {
-                    NewsSlideshow.News_Actual_SubTitle.Visibility = Visibility.Visible;
+                  //  NewsSlideshow.News_Actual_SubTitle.Visibility = Visibility.Visible;
 
                     // Default #FF24FF00
 
                     // Set a color if a color is defined
                     try
                     {
-                        if (!string.IsNullOrEmpty (news.subtitleColor))
+                        if (!string.IsNullOrEmpty(news.subtitleColor))
                         {
-                            NewsSlideshow.News_Actual_SubTitle.Foreground = new SolidColorBrush ((Color)ColorConverter.ConvertFromString (news.subtitleColor));
+                           // NewsSlideshow.News_Actual_SubTitle.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(news.subtitleColor));
                         }
                     }
                     catch
@@ -1984,18 +2000,18 @@ namespace GameLauncher
                         // Using default value
                     }
 
-                    UpdateLabel (NewsSlideshow.News_Actual_SubTitle, news.subtitle);
+                   // UpdateLabel(NewsSlideshow.News_Actual_SubTitle, news.subtitle);
                 }
                 else
                 {
-                    NewsSlideshow.News_Actual_SubTitle.Visibility = Visibility.Collapsed;
+                   // NewsSlideshow.News_Actual_SubTitle.Visibility = Visibility.Collapsed;
                 }
 
                 // Show Date
                 if (news.showDate == true)
                 {
-                    NewsSlideshow.News_Actual_Date.Visibility = Visibility.Visible;
-                    UpdateLabel (NewsSlideshow.News_Actual_Date, news.date?.ToString ("MM/dd/yyyy"));
+                    //NewsSlideshow.News_Actual_Date.Visibility = Visibility.Visible;
+                    UpdateLabel(NewsSlideshow.News_Actual_Date, news.date?.ToString("MM/dd/yyyy"));
                 }
                 else
                 {
@@ -2004,13 +2020,13 @@ namespace GameLauncher
 
 
                 // Show Content
-                UpdateLabel (NewsSlideshow.News_Actual_Content, news.content);
+                UpdateLabel(NewsSlideshow.News_Actual_Content, news.content);
 
                 // Show Button
                 if (news.showButton == true)
                 {
                     NewsSlideshow.News_Button.Visibility = Visibility.Visible;
-                    UpdateLabel (NewsSlideshow.News_Button_Content, news.buttonContent);
+                    UpdateLabel(NewsSlideshow.News_Button_Content, news.buttonContent);
                 }
                 else
                 {
@@ -2023,33 +2039,32 @@ namespace GameLauncher
 
             else
             { // Hide content
-                UpdateLabel (NewsSlideshow.News_Header, "");
-                UpdateLabel (NewsSlideshow.News_Actual_Title, "");
-                UpdateLabel (NewsSlideshow.News_Actual_SubTitle, "");
-                UpdateLabel (NewsSlideshow.News_Actual_Date, "");
-                UpdateLabel (NewsSlideshow.News_Actual_Content, "");
-                UpdateLabel (NewsSlideshow.News_Button_Content, "");
+                UpdateLabel(NewsSlideshow.News_Header, "");
+                UpdateLabel(NewsSlideshow.News_Actual_Title, "");
+                UpdateLabel(NewsSlideshow.News_Actual_SubTitle, "");
+                UpdateLabel(NewsSlideshow.News_Actual_Date, "");
+                UpdateLabel(NewsSlideshow.News_Actual_Content, "");
+                UpdateLabel(NewsSlideshow.News_Button_Content, "");
                 NewsSlideshow.News_LineSeparation.Visibility = Visibility.Collapsed;
                 NewsSlideshow.News_Button.Visibility = Visibility.Collapsed;
             }
+//  Utility.CreateOpacityAnimation(NewsSlideshow.Content_Superior, 0, 1, 0.5f);
 
-            Utility.CreateOpacityAnimation (NewsSlideshow.Content_Superior, 0, 1, 0.5f);
-
-        }
+        }*/
 
         /// <summary>
         /// Create subnews element.
         /// </summary>
         /// <param name="subNews"></param>
-        private void CreateSubNewsElement (SubNews subNews)
+        private void CreateSubNewsElement(SubNews subNews)
         {
             createdSubNewsElements++;
 
             // Create control
-            SubNewsControl subNewsControl = new SubNewsControl ();
+            SubNewsControl subNewsControl = new SubNewsControl();
 
             // Assign URL and Cursor
-            subNewsControl.MouseDown += (s, e) => Utility.OpenURL (subNews.interactionURL);
+            subNewsControl.MouseDown += (s, e) => Utility.OpenURL(subNews.interactionURL);
             subNewsControl.Cursor = Cursors.Hand;
 
             // Set Image
@@ -2064,12 +2079,12 @@ namespace GameLauncher
             subNewsControl.Text = subNews.content;
             subNewsControl.IsTextVisible = subNews.showContent == true ? true : false;
 
-            subNewsControl.Date = subNews.date?.ToString ("MM/dd/yyyy");
+            subNewsControl.Date = subNews.date?.ToString("MM/dd/yyyy");
             subNewsControl.IsDateVisible = subNews.showDate == true ? true : false;
 
             if (actualRow == 2)
             {
-                subNewsControl.Margin = new Thickness (0, 0, 0, 5);
+                subNewsControl.Margin = new Thickness(0, 0, 0, 5);
             }
 
             actualColumn++;
@@ -2081,16 +2096,16 @@ namespace GameLauncher
                 //Content_Inferior.RowDefinitions.Add (new RowDefinition ());
             }
 
-            Content_Inferior.Children.Add (subNewsControl);
+            Content_Inferior.Children.Add(subNewsControl);
 
-            subNewsControlList.Add (subNewsControl);
+            subNewsControlList.Add(subNewsControl);
         }
 
         /// <summary>
         /// Fetch the server status
         /// </summary>
         /// <param name="newsContent"></param>
-        private void FetchServerStatus (NewsContent newsContent)
+        private void FetchServerStatus(NewsContent newsContent)
         {
 
             if (newsContent == null)
@@ -2119,13 +2134,13 @@ namespace GameLauncher
 
             if (isServerOnline)
             {
-                ServerStatusText.Text = string.Format ("Online", isServerOnline);
-                ServerStatusText.Foreground = new SolidColorBrush (Colors.Lime);
+                ServerStatusText.Text = string.Format("Online", isServerOnline);
+                ServerStatusText.Foreground = new SolidColorBrush(Colors.Lime);
             }
             else
             {
-                ServerStatusText.Text = string.Format ("Offline", isServerOnline);
-                ServerStatusText.Foreground = new SolidColorBrush (Colors.Red);
+                ServerStatusText.Text = string.Format("Offline", isServerOnline);
+                ServerStatusText.Foreground = new SolidColorBrush(Colors.Red);
             }
         }
 
@@ -2133,7 +2148,7 @@ namespace GameLauncher
         /// Fetch the alert notification info.
         /// </summary>
         /// <param name="newsContent"></param>
-        private void FetchAlertNotification (NewsContent newsContent)
+        private void FetchAlertNotification(NewsContent newsContent)
         {
             // Check if valid
             if ((newsContent == null && newsContent.Alerts != null && newsContent.Alerts.Count > 0) || newsContent.Alerts.Count == 0)
@@ -2155,22 +2170,22 @@ namespace GameLauncher
                 }
             }
 
-            if (!string.IsNullOrEmpty (newsContent.Alerts[0].message))
+            if (!string.IsNullOrEmpty(newsContent.Alerts[0].message))
             {
                 AlertNotification_Text.Text = newsContent.Alerts[0].message;
 
-                Uri uri = new Uri ("pack://application:,,,/Resources/Icons/Status/status_warning_black.png");
-                Alert_Icon.Background = (SolidColorBrush)new BrushConverter ().ConvertFrom ("#FFFFAF00");
+                Uri uri = new Uri("pack://application:,,,/Resources/Icons/Status/status_warning_black.png");
+                Alert_Icon.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FFFFAF00");
 
                 if (newsContent.Alerts[0].type == "Information")
                 {
-                    uri = new Uri ("pack://application:,,,/Resources/Icons/Status/status_information_black.png");
-                    Alert_Icon.Background = (SolidColorBrush)new BrushConverter ().ConvertFrom ("#FF00DCDC");
+                    uri = new Uri("pack://application:,,,/Resources/Icons/Status/status_information_black.png");
+                    Alert_Icon.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF00DCDC");
                 }
                 else if (newsContent.Alerts[0].type == "Warning")
                 {
-                    uri = new Uri ("pack://application:,,,/Resources/Icons/Status/status_warning_black.png");
-                    Alert_Icon.Background = (SolidColorBrush)new BrushConverter ().ConvertFrom ("#FFFFAF00");
+                    uri = new Uri("pack://application:,,,/Resources/Icons/Status/status_warning_black.png");
+                    Alert_Icon.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FFFFAF00");
                 }
 
                 //ImageBrush myImageBrush = new ImageBrush (new BitmapImage (uri));
@@ -2181,18 +2196,18 @@ namespace GameLauncher
                 //myImageBrush.Stretch = Stretch.UniformToFill;
 
                 // Use the ImageBrush to paint the rectangle's background.
-                Alert_Image.Source = new BitmapImage (uri);
+                Alert_Image.Source = new BitmapImage(uri);
                 Alert_Image.Stretch = Stretch.UniformToFill;
 
-                Alert_Menu.MouseDown += new MouseButtonEventHandler (Alert_Menu_Click);
+                Alert_Menu.MouseDown += new MouseButtonEventHandler(Alert_Menu_Click);
                 Alert_Menu.Cursor = Cursors.Hand;
-                Alert_Menu.CreateOpacityAnimation (0, 1, 1);
+                Alert_Menu.CreateOpacityAnimation(0, 1, 1);
                 Alert_Menu.Visibility = Visibility.Visible;
             }
             else
             {
                 AlertNotification_Text.Text = "";
-                Alert_Menu.CreateOpacityAnimation (1, 0, 1);
+                Alert_Menu.CreateOpacityAnimation(1, 0, 1);
 
             }
         }
@@ -2202,7 +2217,7 @@ namespace GameLauncher
         /// </summary>
         /// <param name="progressBar"></param>
         /// <param name="value"></param>
-        private void UpdateProgressbar (ProgressBar progressBar, int value)
+        private void UpdateProgressbar(ProgressBar progressBar, int value)
         {
             if (value < 0)
                 value = 0;
@@ -2211,28 +2226,28 @@ namespace GameLauncher
 
             if (value > 0)
             {
-                RunOnMainThread (() => overallProgressBar_Background.Visibility = Visibility.Visible);
-                RunOnMainThread (() => singleProcessProgressBar_Background.Visibility = Visibility.Visible);
+                RunOnMainThread(() => overallProgressBar_Background.Visibility = Visibility.Visible);
+                RunOnMainThread(() => singleProcessProgressBar_Background.Visibility = Visibility.Visible);
             }
-            RunOnMainThread (() => progressBar.Value = value);
+            RunOnMainThread(() => progressBar.Value = value);
         }
 
         /// <summary>
         /// Clear Texts of GameLauncher
         /// </summary>
-        private void ClearTexts ()
+        private void ClearTexts()
         {
             // Hide Texts
-            UpdateLabel (progressTextDetail, string.Empty);
-            UpdateLabel (NewsSlideshow.News_Actual_Content, Localization.Get (LocalizationID.MainUI_NoNewsAtTheMoment));
-            UpdateLabel (statusText, string.Empty);
-            UpdateVisibility (lbl_RegionVersion, Visibility.Collapsed);
+            UpdateLabel(progressTextDetail, string.Empty);
+           // UpdateLabel(NewsSlideshow.News_Actual_Content, Localization.Get(LocalizationID.MainUI_NoNewsAtTheMoment));
+            UpdateLabel(statusText, string.Empty);
+            UpdateVisibility(lbl_RegionVersion, Visibility.Collapsed);
             //UpdateLabel (launcherVersionLabel, string.Empty);
 
             // Progress Bar
             overallProgressBar_Background.Visibility = Visibility.Hidden;
             singleProcessProgressBar_Background.Visibility = Visibility.Hidden;
-            UpdateLabel (progressText, string.Empty);
+            UpdateLabel(progressText, string.Empty);
             singleProcessProgressBar.Value = 0;
             overallProgressBar.Value = 0;
         }
@@ -2240,43 +2255,47 @@ namespace GameLauncher
         /// <summary>
         /// Show Youtube Video
         /// </summary>
-        public async void ShowVideo (string URL)
+        public async void ShowVideo(string URL)
         {
 
-            string videoId = Utility.ExtractIDFromYoutubeURL (URL);
+            string videoId = Utility.ExtractIDFromYoutubeURL(URL);
 
-            var videoURL = await YouTube.GetVideoUriAsync (videoId, YouTubeQuality.QualityHigh);
-            NewsSlideshow.mediaElement.Source = videoURL.Uri;
+            var videoURL = await YouTube.GetVideoUriAsync(videoId, YouTubeQuality.QualityHigh);
+            //NewsSlideshow.mediaElement.Source = videoURL.Uri;
         }
 
         /// <summary>
         /// Change Launcher UI Language
         /// </summary>
         /// <param name="language"></param>
-        public void ChangeUILanguage (string language)
+        public void ChangeUILanguage(string language)
         {
             switch (language)
             {
                 case "en_US":
-                    GameLauncherCore.Localization.SetLanguage ("en_US");
+                    GameLauncherCore.Localization.SetLanguage("en_US");
                     SettingsManager.Settings.Language = "en_US";
                     break;
                 case "es_MX":
-                    GameLauncherCore.Localization.SetLanguage ("es_MX");
+                    GameLauncherCore.Localization.SetLanguage("es_MX");
                     SettingsManager.Settings.Language = "es_MX";
                     break;
                 case "tr_TR":
-                    GameLauncherCore.Localization.SetLanguage ("tr_TR");
+                    GameLauncherCore.Localization.SetLanguage("tr_TR");
                     SettingsManager.Settings.Language = "tr_TR";
                     break;
+                case "ru_RU":
+                    GameLauncherCore.Localization.SetLanguage("ru_RU");
+                    SettingsManager.Settings.Language = "ru_RU";
+                    break;
                 default:
-                    GameLauncherCore.Localization.SetLanguage ("en_US");
+                    GameLauncherCore.Localization.SetLanguage("en_US");
                     SettingsManager.Settings.Language = "en_US";
                     break;
             }
 
 
-            RefreshUILanguage ();
+            RefreshUILanguage();
         }
 
         /// <summary>
@@ -2284,7 +2303,7 @@ namespace GameLauncher
         /// </summary>
         public void ShowSelectedGameInExplorer()
         {
-            if (Directory.Exists (rootPath))
+            if (Directory.Exists(rootPath))
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
@@ -2292,16 +2311,16 @@ namespace GameLauncher
                     FileName = "explorer.exe"
                 };
 
-                Process.Start (startInfo);
+                Process.Start(startInfo);
             }
         }
 
         /// <summary>
         /// Save Games Info to Settings
         /// </summary>
-        public void SaveGamesInfo ()
+        public void SaveGamesInfo()
         {
-            SettingsManager.SaveGamesInfo (AvailableGames);
+            SettingsManager.SaveGamesInfo(AvailableGames);
         }
 
 
@@ -2311,19 +2330,19 @@ namespace GameLauncher
         /// <param name="sender"></param>
         /// <param name="e"></param>
 
-        public void OpenOrCloseSettingsCanvas ()
+        public void OpenOrCloseSettingsCanvas()
         {
-            var settingsWindow = new SettingsWindow ();
-            settingsWindow.ShowDialog ();
+            var settingsWindow = new SettingsWindow();
+            settingsWindow.ShowDialog();
         }
 
         /// <summary>
         /// Open install window
         /// </summary>
-        public void OpenInstallWindow ()
+        public void OpenInstallWindow()
         {
-            var installGameWindow = new InstallGame (ref SelectedGame, patcher, MAINAPP_VERSIONINFO_URL);
-            installGameWindow.ShowDialog ();
+            var installGameWindow = new InstallGame(ref SelectedGame, patcher, MAINAPP_VERSIONINFO_URL);
+            installGameWindow.ShowDialog();
         }
 
         /// <summary>
@@ -2331,44 +2350,44 @@ namespace GameLauncher
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void LocateTheGame (object sender = null, MouseButtonEventArgs e = null)
+        public void LocateTheGame(object sender = null, MouseButtonEventArgs e = null)
         {
             // Open browser dialog
-            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog ();
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
             dialog.SelectedPath = SelectedGame.InstallPath;
-            System.Windows.Forms.DialogResult result = dialog.ShowDialog ();
+            System.Windows.Forms.DialogResult result = dialog.ShowDialog();
 
             // If selection was OK
             if (result == System.Windows.Forms.DialogResult.OK)
             {
 
                 // Check if the version file exists
-                string versionFile = System.IO.Path.Combine (dialog.SelectedPath, "App_version.data");
+                string versionFile = System.IO.Path.Combine(dialog.SelectedPath, "App_version.data");
 
                 // If exists
-                if (File.Exists (versionFile))
+                if (File.Exists(versionFile))
                 {
                     // Check if we have at least 1 file
-                    if (Directory.GetFiles (dialog.SelectedPath).Length > 0)
+                    if (Directory.GetFiles(dialog.SelectedPath).Length > 0)
                     {
                         SelectedGame.InstallPath = dialog.SelectedPath;
-                        AvailableGames.First (x => x.Title == SelectedGame.Title).InstallPath = SelectedGame.InstallPath;
+                        AvailableGames.First(x => x.Title == SelectedGame.Title).InstallPath = SelectedGame.InstallPath;
 
-                        SaveGamesInfo ();
+                        SaveGamesInfo();
 
                         // Try to update the game
                         // mainAppDirectory = System.IO.Path.Combine (SelectedGame.Location, CurrentSelectedEnvironment);
                         mainAppDirectory = SelectedGame.InstallPath;
-                        PatchNow ();
+                        PatchNow();
                     }
                     else
                     {
-                        MessageBox.Show ("There are no files in the selected folder.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("There are no files in the selected folder.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 else
                 {
-                    MessageBox.Show ("The version file was not found in the selected folder.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("The version file was not found in the selected folder.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -2376,11 +2395,11 @@ namespace GameLauncher
         /// <summary>
         /// Uninstall the selected game. Files will be moved to recycle bin.
         /// </summary>
-        public void UninstallGame ()
+        public void UninstallGame()
         {
 
-            var confirmationDialog = new UninstallWindow (ref SelectedGame);
-            confirmationDialog.ShowDialog ();
+            var confirmationDialog = new UninstallWindow(ref SelectedGame);
+            confirmationDialog.ShowDialog();
 
             if (!confirmationDialog.Confirmed)
             {
@@ -2391,29 +2410,30 @@ namespace GameLauncher
             string installPath = SelectedGame.InstallPath;
 
             // Enviamos todos los archivos y carpetas a la papelera de reciclaje
-            if (!string.IsNullOrEmpty (installPath) && Directory.Exists (installPath))
+            if (!string.IsNullOrEmpty(installPath) && Directory.Exists(installPath))
             {
                 try
                 {
-                    FileSystem.DeleteDirectory (installPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                    FileSystem.DeleteDirectory(installPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
 
                     // CHeck if the folder still exists
-                    if (!Directory.Exists (installPath))
+                    if (!Directory.Exists(installPath))
                     {
                         // Update Game and Launcher status
                         SelectedGame.IsInstalled = false;
 
-                        SetLauncherStatus (LauncherStatus.requireInstall);
+                        SetLauncherStatus(LauncherStatus.requireInstall);
 
-                        UpdateCategoryListsCount ();
-                    } else
+                        UpdateCategoryListsCount();
+                    }
+                    else
                     {
-                        throw new Exception ("Something wrong deleting the files.");
+                        throw new Exception("Something wrong deleting the files.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show ($"Error at game uninstall: {ex.Message}");
+                    MessageBox.Show($"Error at game uninstall: {ex.Message}");
                 }
             }
         }
@@ -2422,15 +2442,15 @@ namespace GameLauncher
         /// Search field text changed action. Enable or Disable Game Covers
         /// </summary>
         /// <param name="searchText"></param>
-        public void SearchFieldTextChanged (string searchText = "")
+        public void SearchFieldTextChanged(string searchText = "")
         {
             // Show only GameCoverControls that match in title or subtitle with the searchText
             foreach (var gameCover in gameCovers)
             {
-                var gameTitle = gameCover.GameTitle.Text.ToLower ();
-                var gameSubtitle = gameCover.GameSubtitle.Text.ToLower ();
+                var gameTitle = gameCover.GameTitle.Text.ToLower();
+                var gameSubtitle = gameCover.GameSubtitle.Text.ToLower();
 
-                if (string.IsNullOrWhiteSpace (searchText) || gameTitle.Contains (searchText.ToLower ()) || gameSubtitle.Contains (searchText.ToLower ()))
+                if (string.IsNullOrWhiteSpace(searchText) || gameTitle.Contains(searchText.ToLower()) || gameSubtitle.Contains(searchText.ToLower()))
                 {
                     gameCover.Visibility = Visibility.Visible;
                 }
@@ -2445,7 +2465,7 @@ namespace GameLauncher
         /// Select app category. Enables or Disables the game covers that matchs the category.
         /// </summary>
         /// <param name="category"></param>
-        public void SelectCategory (Category category)
+        public void SelectCategory(Category category)
         {
             if (category == Category.All)
             {
@@ -2491,96 +2511,96 @@ namespace GameLauncher
 
             SelectedCategory = category;
 
-            UpdateLabelCategory ();
+            UpdateLabelCategory();
         }
 
         /// <summary>
         /// Updates the label category with the current selected category.
         /// </summary>
-        public void UpdateLabelCategory ()
+        public void UpdateLabelCategory()
         {
             // Update lbl_CurrentCategory
             switch (SelectedCategory)
             {
                 case Category.FreeToPlay:
-                    lbl_CurrentCategory.Content = Localization.Get (LocalizationID.MainUI_Library_FreeToPlay);
+                    lbl_CurrentCategory.Content = Localization.Get(LocalizationID.MainUI_Library_FreeToPlay);
 
                     break;
                 case Category.Multiplayer:
-                    lbl_CurrentCategory.Content = Localization.Get (LocalizationID.MainUI_Library_Multiplayer);
+                    lbl_CurrentCategory.Content = Localization.Get(LocalizationID.MainUI_Library_Multiplayer);
 
                     break;
                 case Category.MacOS:
-                    lbl_CurrentCategory.Content = Localization.Get (LocalizationID.MainUI_Library_MacOS);
+                    lbl_CurrentCategory.Content = Localization.Get(LocalizationID.MainUI_Library_MacOS);
 
                     break;
                 case Category.Mobile:
-                    lbl_CurrentCategory.Content = Localization.Get (LocalizationID.MainUI_Library_Mobile);
+                    lbl_CurrentCategory.Content = Localization.Get(LocalizationID.MainUI_Library_Mobile);
                     break;
                 case Category.Installed:
-                    lbl_CurrentCategory.Content = Localization.Get (LocalizationID.MainUI_Library_Installed);
+                    lbl_CurrentCategory.Content = Localization.Get(LocalizationID.MainUI_Library_Installed);
                     break;
                 case Category.Favorites:
-                    lbl_CurrentCategory.Content = Localization.Get (LocalizationID.MainUI_Library_Favorites);
+                    lbl_CurrentCategory.Content = Localization.Get(LocalizationID.MainUI_Library_Favorites);
                     break;
                 default:
-                    lbl_CurrentCategory.Content = Localization.Get (LocalizationID.MainUI_Library_AllGames);
+                    lbl_CurrentCategory.Content = Localization.Get(LocalizationID.MainUI_Library_AllGames);
                     break;
             }
         }
 
-        private void AddGameButton_PreviewMouseDown (object sender, MouseButtonEventArgs e)
+        private void AddGameButton_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             AllGamesControl_MouseDown(sender, e);
         }
 
-        private void Topside_MouseDown (object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Topside_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
-                this.DragMove ();
+                this.DragMove();
         }
 
-        private void Menu_Logo_MouseDown (object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Menu_Logo_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            OpenOrCloseSettingsCanvas ();
+            OpenOrCloseSettingsCanvas();
         }
 
-        private void TopButton_MyAccount_MouseDown (object sender, MouseButtonEventArgs e)
-        {
-            // Open URL
-            Utility.OpenURL (MY_ACCOUNT_URL);
-        }
-
-        private void lbl_Webpage_MouseDown (object sender, MouseButtonEventArgs e)
+        private void TopButton_MyAccount_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // Open URL
-            Utility.OpenURL (WEBPAGE_URL);
+            Utility.OpenURL(MY_ACCOUNT_URL);
         }
 
-        private void lbl_PatchNotes_MouseDown (object sender, MouseButtonEventArgs e)
+        private void lbl_Webpage_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // Open URL
-            Utility.OpenURL (PATCH_NOTES_URL);
+            Utility.OpenURL(WEBPAGE_URL);
         }
 
-        private void Button_RefreshAll_Click (object sender, RoutedEventArgs e)
+        private void lbl_PatchNotes_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            SwitchTab ("Game");
-            FetchNews ();
+            // Open URL
+            Utility.OpenURL(PATCH_NOTES_URL);
+        }
+
+        private void Button_RefreshAll_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchTab("Game");
+            FetchNews();
 
             if (CurrentLauncherStatus == LauncherStatus.play)
             {
-                FetchGamesFromHost ();
+                FetchGamesFromHost();
             }
         }
 
-        private void MenuItem_ShowInExplorer_Click (object sender, RoutedEventArgs e)
+        private void MenuItem_ShowInExplorer_Click(object sender, RoutedEventArgs e)
         {
 
-            ShowSelectedGameInExplorer ();
+            ShowSelectedGameInExplorer();
         }
 
-        private void Dropdown_Environment_SelectionChanged (object sender, SelectionChangedEventArgs e)
+        private void Dropdown_Environment_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (isFirstTimeLoadEnvironment == false)
             {
@@ -2590,14 +2610,19 @@ namespace GameLauncher
 
             CurrentSelectedEnvironment = ENVIRONMENT[Dropdown_Environment.SelectedIndex];
 
-            InitializeLauncher ();
+            InitializeLauncher();
 
             //MessageBox.Show (currentEnvironemnt);
         }
 
-        void Alert_Menu_Click (object sender, MouseButtonEventArgs e)
+        void Alert_Menu_Click(object sender, MouseButtonEventArgs e)
         {
-            Utility.OpenURL (newsContent.Alerts[0].interactionURL);
+            Utility.OpenURL(newsContent.Alerts[0].interactionURL);
+        }
+
+        private void NewsSlideshow_Loaded(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 

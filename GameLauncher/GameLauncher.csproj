@@ -10,12 +10,11 @@
     <DebugType>embedded</DebugType>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
-    <StartupObject></StartupObject>
+    <StartupObject>GameLauncher.App</StartupObject>
     <NoWin32Manifest>true</NoWin32Manifest>
     <Version>1.0.0</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <UseWindowsForms>false</UseWindowsForms>
-    <TargetPlatformVersion>10.0.18362.0</TargetPlatformVersion>
     <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
@@ -32,18 +31,20 @@
 
   <ItemGroup>
     <None Remove="Resources\Icons\Navigation\navigation_external_link.png" />
+    <None Remove="Resources\Images\Game Launcher Logos\Game Launcher - Logo with Shadow Small.png" />
+    <None Remove="Resources\Images\Game Launcher Logos\Logo.png" />
+    <None Remove="Resources\Images\Game Launcher Logos\Logo4.png" />
     <None Remove="Resources\Images\Launcher Images\application_icon.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Common.NETCore" Version="105.3.330" />
-    <PackageReference Include="CefSharp.Wpf.NETCore" Version="105.3.330" />
     <PackageReference Include="FluentWPF" Version="0.10.2" />
     <PackageReference Include="FontAwesome.Sharp" Version="6.3.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="MyToolkit" Version="2.5.16" />
     <PackageReference Include="MyToolkit.Extended" Version="2.5.16" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Management" Version="6.0.1" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
     <PackageReference Include="XamlRadialProgressBar" Version="1.0.3" />
   </ItemGroup>
@@ -83,12 +84,14 @@
     <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher - 2K Full Logo with Background.png" />
     <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher - Full Logo with Shadow.png" />
     <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher - Full Logo.png" />
+    <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher - Logo with Shadow Small.png" />
     <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher - Square Full Logo with Background.png" />
     <Resource Include="Resources\Icons\Status\status_completed.png" />
     <Resource Include="Resources\Icons\Navigation\navigation_layouts.png" />
     <Resource Include="Resources\Icons\Actions\action_search.png" />
+    <Resource Include="Resources\Images\Game Launcher Logos\Logo.png" />
+    <Resource Include="Resources\Images\Game Launcher Logos\Logo4.png" />
     <Resource Include="Resources\Images\Launcher Images\application_icon.png" />
-    <SplashScreen Include="Resources\Images\Game Launcher Logos\Game Launcher - Logo with Shadow Small.png" />
     <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher - Logo with Shadow.png" />
     <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher - Logo.png" />
     <Resource Include="Resources\Images\Game Launcher Logos\Game Launcher Logo New.png" />
@@ -147,10 +150,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ViewsModels\" />
   </ItemGroup>
 
 </Project>

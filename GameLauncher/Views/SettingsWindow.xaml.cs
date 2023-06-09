@@ -19,24 +19,25 @@ namespace GameLauncher.Views
     /// </summary>
     public partial class SettingsWindow : Window
     {
-        public SettingsWindow ()
+        public SettingsWindow()
         {
-            InitializeComponent ();
+            InitializeComponent();
             Closed += SettingsWindow_Closed;
 
-            RefreshSettings ();
+            RefreshSettings();
+
         }
 
-        public void RefreshSettings ()
+        public void RefreshSettings()
         {
             LocationPath.Text = SettingsManager.Settings.CustomInstallFolder;
-            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex (SettingsManager.Settings.Language);
+            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex(SettingsManager.Settings.Language);
             ComboBox_OnAppLaunchAction.SelectedIndex = SettingsManager.Settings.OnAppLaunchAction;
             checkBox_UseDefaultInstallLocation.IsChecked = SettingsManager.Settings.UseDefaultInstallLocation;
 
             settings_Downloads_CustomInstallLocation.Visibility = SettingsManager.Settings.UseDefaultInstallLocation ? Visibility.Collapsed : Visibility.Visible;
 
-            RefreshLanguage ();
+            RefreshLanguage();
         }
 
         // On Open Dialog
@@ -45,58 +46,58 @@ namespace GameLauncher.Views
         /// <summary>
         /// Refresh this window language
         /// </summary>
-        public void RefreshLanguage ()
+        public void RefreshLanguage()
         {
             /// Launcher Settings Language ///
-            lbl_Settings.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings);
+            lbl_Settings.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings);
 
             // LeftSide Options //
 
             // Launcher
-            Settings_Option_LAUNCHER.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_MainOptions_Launcher);
+            Settings_Option_LAUNCHER.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_MainOptions_Launcher);
 
             // Downloads
-            Settings_Option_DOWNLOADS.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_MainOptions_Downloads);
+            Settings_Option_DOWNLOADS.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_MainOptions_Downloads);
 
             // About
-            Settings_Option_ABOUT.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_MainOptions_About);
+            Settings_Option_ABOUT.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_MainOptions_About);
 
             // Launcher Settings //
 
             // LauncherSettings/Title
-            lbl_LauncherSettingsTitle.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle);
+            lbl_LauncherSettingsTitle.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_LauncherSettings_LauncherSettingsTitle);
 
             // LauncherSettings/UI Language
-            lbl_UILanguage.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_LauncherSettings_UILanguage);
+            lbl_UILanguage.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_LauncherSettings_UILanguage);
 
             // On App Launch
-            lbl_OnAppLaunch.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_LauncherSettings_OnAppLaunch);
+            lbl_OnAppLaunch.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_LauncherSettings_OnAppLaunch);
 
             // Downloads Settings //
-            lbl_DownloadSettingsTitle.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_DownloadsSettings_DownloadsSettingsTitle);
+            lbl_DownloadSettingsTitle.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_DownloadsSettings_DownloadsSettingsTitle);
 
             // Install location
-            checkBox_UseDefaultInstallLocation.Content = GameLauncherCore.Localization.Get (LocalizationID.Settings_DownloadsSettings_UseDefaultInstallLocation);
-            lbl_CustomInstallLocation.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_DownloadsSettings_CustomInstallLocation);
-            lbl_ChangeLocation.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_DownloadsSettings_ChangeLocation);
+            checkBox_UseDefaultInstallLocation.Content = GameLauncherCore.Localization.Get(LocalizationID.Settings_DownloadsSettings_UseDefaultInstallLocation);
+            lbl_CustomInstallLocation.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_DownloadsSettings_CustomInstallLocation);
+            lbl_ChangeLocation.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_DownloadsSettings_ChangeLocation);
 
             // About Settings //
 
             // ABOUT/Title
-            lbl_AboutSettingsTitle.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_About_AboutSettingsTitle);
+            lbl_AboutSettingsTitle.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_About_AboutSettingsTitle);
 
             // ABOUT/Get GameLauncher
-            lbl_GetGameLauncher.Text = GameLauncherCore.Localization.Get (LocalizationID.Settings_About_GetGameLauncher);
+            lbl_GetGameLauncher.Text = GameLauncherCore.Localization.Get(LocalizationID.Settings_About_GetGameLauncher);
 
             // Terms and Privacy
-            TERMS_OF_SERVICE.Text = GameLauncherCore.Localization.Get (LocalizationID.TERMS_OF_SERVICE);
-            PRIVACY_POLICY.Text = GameLauncherCore.Localization.Get (LocalizationID.PRIVACY_POLICY);
+            TERMS_OF_SERVICE.Text = GameLauncherCore.Localization.Get(LocalizationID.TERMS_OF_SERVICE);
+            PRIVACY_POLICY.Text = GameLauncherCore.Localization.Get(LocalizationID.PRIVACY_POLICY);
 
 
             // Update AppLaunchAction ComboBox Language
-            ComboBox_OnAppLaunchAction_KeepOpen.Content = GameLauncherCore.Localization.Get (LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Open);
-            ComboBox_OnAppLaunchAction_Minimize.Content = GameLauncherCore.Localization.Get (LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Minimize);
-            ComboBox_OnAppLaunchAction_Close.Content = GameLauncherCore.Localization.Get (LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Close);
+            ComboBox_OnAppLaunchAction_KeepOpen.Content = GameLauncherCore.Localization.Get(LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Open);
+            ComboBox_OnAppLaunchAction_Minimize.Content = GameLauncherCore.Localization.Get(LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Minimize);
+            ComboBox_OnAppLaunchAction_Close.Content = GameLauncherCore.Localization.Get(LocalizationID.Settings_LauncherSettingsOnAppLaunchDropdown_Close);
         }
 
         int GetSelectedLanguageIndex(string language)
@@ -107,25 +108,28 @@ namespace GameLauncher.Views
                 case "en_US":
                     //GameLauncherCore.Localization.SetLanguage ("en_US");
                     return 0;
-                case "es_MX":
+                case "ru_RU":
                     //GameLauncherCore.Localization.SetLanguage ("es_MX");
                     return 1;
                 case "tr_TR":
                     //GameLauncherCore.Localization.SetLanguage ("tr_TR");
                     return 2;
+                case "es_MX":
+                    //GameLauncherCore.Localization.SetLanguage ("tr_TR");
+                    return 3;
                 default:
                     //GameLauncherCore.Localization.SetLanguage ("en_US");
                     return 0;
             }
         }
 
-        private void Button_CloseSettings_Click (object sender, RoutedEventArgs e)
+        private void Button_CloseSettings_Click(object sender, RoutedEventArgs e)
         {
-            Close ();
+            Close();
         }
 
         #region TABS LOGIC
-        private void RadioButton_Click (object sender, RoutedEventArgs e)
+        private void RadioButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender == LauncherButton)
             {
@@ -145,26 +149,26 @@ namespace GameLauncher.Views
         #region Launcher Tab
 
         #region Downloads Tab
-        private void ChangeLocationButton_MouseDown (object sender, MouseButtonEventArgs e)
+        private void ChangeLocationButton_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog ();
-            System.Windows.Forms.DialogResult result = dialog.ShowDialog ();
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.DialogResult result = dialog.ShowDialog();
 
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 string gamePath = dialog.SelectedPath;
 
 
-                if (!gamePath.EndsWith (MainWindow.MAINAPP_SUBDIRECTORY))
+                if (!gamePath.EndsWith(MainWindow.MAINAPP_SUBDIRECTORY))
                 {
-                    gamePath = System.IO.Path.Combine (dialog.SelectedPath, MainWindow.MAINAPP_SUBDIRECTORY);
+                    gamePath = System.IO.Path.Combine(dialog.SelectedPath, MainWindow.MAINAPP_SUBDIRECTORY);
                 }
 
                 LocationPath.Text = gamePath;
 
                 SettingsManager.Settings.CustomInstallFolder = gamePath;
 
-                SettingsManager.SaveSettings ();
+                SettingsManager.SaveSettings();
             }
         }
 
@@ -173,60 +177,81 @@ namespace GameLauncher.Views
         #endregion
 
         #region About Tab
-        private void TERMS_OF_SERVICE_MouseDown (object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void TERMS_OF_SERVICE_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
 
             // Open Terms of Service Link
-            Utility.OpenURL (mainWindow.TERMS_OF_SERVICE_URL);
+            Utility.OpenURL(mainWindow.TERMS_OF_SERVICE_URL);
 
         }
-        private void PRIVACY_POLICY_MouseDown (object sender, MouseButtonEventArgs e)
+        private void PRIVACY_POLICY_MouseDown(object sender, MouseButtonEventArgs e)
         {
             MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
 
             // Open Privacy Policy Link
-            Utility.OpenURL (mainWindow.PRIVACY_POLICY_URL);
+            Utility.OpenURL(mainWindow.PRIVACY_POLICY_URL);
         }
-        private void GAME_LAUNCHER_MouseDown (object sender, MouseButtonEventArgs e)
+        private void GAME_LAUNCHER_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            Utility.OpenURL ("https://assetstore.unity.com/packages/slug/217526");
+            Utility.OpenURL("https://assetstore.unity.com/packages/slug/217526");
         }
 
         #endregion
 
-        private void SetLanguage_en_US_MouseDown (object sender, MouseButtonEventArgs e)
+        private void SetLanguage_en_US_MouseDown(object sender, MouseButtonEventArgs e)
         {
             MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
-            mainWindow.ChangeUILanguage ("en_US");
-            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex (SettingsManager.Settings.Language);
+            mainWindow.ChangeUILanguage("en_US");
+            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex(SettingsManager.Settings.Language);
 
-            RefreshLanguage ();
+            RefreshLanguage();
         }
 
-        private void SetLanguage_es_MX_MouseDown (object sender, MouseButtonEventArgs e)
+        private void SetLanguage_ru_RU_MouseDown(object sender, MouseButtonEventArgs e)
         {
             MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
-            mainWindow.ChangeUILanguage ("es_MX");
-            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex (SettingsManager.Settings.Language);
+            mainWindow.ChangeUILanguage("ru_RU");
+            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex(SettingsManager.Settings.Language);
 
-            RefreshLanguage ();
+            RefreshLanguage();
+        }
+        private void SetLanguage_tr_TR_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
+            mainWindow.ChangeUILanguage("tr_TR");
+            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex(SettingsManager.Settings.Language);
+
+            RefreshLanguage();
+        }
+        private void SetLanguage_es_MX_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
+            mainWindow.ChangeUILanguage("es_MX");
+            ComboBox_Language.SelectedIndex = GetSelectedLanguageIndex(SettingsManager.Settings.Language);
+
+            RefreshLanguage();
         }
 
-        private void checkBox_UseDefaultInstallLocation_Click (object sender, RoutedEventArgs e)
+        private void checkBox_UseDefaultInstallLocation_Click(object sender, RoutedEventArgs e)
         {
             CheckBox checkBox = sender as CheckBox;
 
             SettingsManager.Settings.UseDefaultInstallLocation = (bool)checkBox.IsChecked;
-            SettingsManager.SaveSettings ();
+            SettingsManager.SaveSettings();
 
             settings_Downloads_CustomInstallLocation.Visibility = (bool)checkBox.IsChecked ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        private void SettingsWindow_Closed (object sender, EventArgs e)
+        private void SettingsWindow_Closed(object sender, EventArgs e)
         {
             SettingsManager.Settings.OnAppLaunchAction = ComboBox_OnAppLaunchAction.SelectedIndex;
-            SettingsManager.SaveSettings ();
+            SettingsManager.SaveSettings();
+        }
+
+        private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
     }
 }

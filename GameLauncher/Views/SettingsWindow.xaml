@@ -10,12 +10,9 @@
         Title="Install Game"
         Width="1540"
         Height="866"
-        WindowStartupLocation="CenterScreen"
         Foreground="White"
-        WindowStyle="None"
         ResizeMode="NoResize"
-        AllowsTransparency="True"
-        Background="#C8000000">
+        Background="#C8000000" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight" WindowStyle="None">
     <Window.Resources>
         <ResourceDictionary>
             <Style x:Key="GridBorderStyle" TargetType="Border">
@@ -127,7 +124,7 @@
 
             <!-- Tabs -->
 
-            <TabControl x:Name="tabControl" BorderBrush="{x:Null}" Background="{x:Null}" SelectedIndex="0">
+            <TabControl x:Name="tabControl" BorderBrush="{x:Null}" Background="{x:Null}" SelectedIndex="0" SelectionChanged="tabControl_SelectionChanged">
                 <TabControl.ItemContainerStyle>
                     <Style TargetType="{x:Type TabItem}">
                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -151,7 +148,9 @@
                                 <TextBlock x:Name="lbl_UILanguage" Text="UI Language" Foreground="White" Margin="0,0,0,5"/>
                                 <ComboBox x:Name="ComboBox_Language" Style="{StaticResource ComboBoxStyle}" Width="250" SelectedIndex="0">
                                     <ComboBoxItem Content="ENGLISH (US)" PreviewMouseDown="SetLanguage_en_US_MouseDown"/>
-                                    <ComboBoxItem Content="ESPAÑOL (MX)" PreviewMouseDown="SetLanguage_es_MX_MouseDown"/>
+                                    <ComboBoxItem Content="РУССКИЙ (RU)" PreviewMouseDown="SetLanguage_ru_RU_MouseDown"/>
+                                    <!-- <ComboBoxItem Content="TURKISH (TR)" PreviewMouseDown="SetLanguage_tr_TR_MouseDown"/>-->
+                                    <!-- <ComboBoxItem Content="ESPAÑOL (MX)" PreviewMouseDown="SetLanguage_es_MX_MouseDown"/>-->
                                 </ComboBox>
                             </StackPanel>
                             <!-- Settings On App Launch -->

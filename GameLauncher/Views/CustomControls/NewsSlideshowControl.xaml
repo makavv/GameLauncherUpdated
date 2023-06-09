@@ -6,14 +6,13 @@
              xmlns:local="clr-namespace:GameLauncher.Controls"
              xmlns:GameLauncher="clr-namespace:GameLauncher" 
             x:Class="GameLauncher.Controls.NewsSlideshowControl"
-             mc:Ignorable="d" 
-             d:DesignWidth="1524" d:DesignHeight="378">
+             mc:Ignorable="d" d:DesignHeight="378" Width="1177">
     <StackPanel Margin="0,0,0,10">
 
         <Grid x:Name="Content_Superior" Height="338" Width="Auto" Margin="0,0,0,10">
 
             <Rectangle x:Name="Background" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.ColumnSpan="3" Fill="#19FFFFFF" RadiusX="10" RadiusY="10"/>
-            <Grid x:Name="News_Video" HorizontalAlignment="Left" Height="Auto" Background="#00000000" Width="601">
+            <Grid x:Name="News_Video" HorizontalAlignment="Left" Height="Auto" Background="#00000000" Width="432">
                 <Grid.Effect>
                     <DropShadowEffect BlurRadius="8" Opacity="0.25" Color="White" Direction="0" ShadowDepth="5"/>
                 </Grid.Effect>
@@ -21,10 +20,10 @@
                     <VisualBrush Visual="{Binding ElementName=clipMask}" Stretch="None" />
                 </Grid.OpacityMask>
                 <Border x:Name="clipMask" CornerRadius="10" Background="Black" />
-                <MediaElement x:Name="mediaElement" HorizontalAlignment="Stretch" Visibility="Visible" StretchDirection="Both" Stretch="UniformToFill" Source="/Resources/Images/Game Launcher Logos/Game Launcher Logos/Game Launcher - 2K Full Logo with Background.png" Width="601" Height="Auto"/>
+                <MediaElement x:Name="mediaElement" Visibility="Visible" StretchDirection="Both" Stretch="UniformToFill" Source="/Resources/Images/Game Launcher Logos/Game Launcher Logos/Game Launcher - 2K Full Logo with Background.png" Height="Auto" Margin="0,0,2,0"/>
 
             </Grid>
-            <StackPanel x:Name="stackPanel" Margin="620,20,20,12" Orientation="Vertical">
+            <StackPanel x:Name="stackPanel" Margin="447,20,25,12" Orientation="Vertical">
                 <TextBlock x:Name="News_Header" TextWrapping="Wrap" FontSize="16" Foreground="#B1B1B1" FontWeight="Regular" FontFamily="Fonts/#Monserrat" Text="LASTEST NEWS" Margin="0,0,0,5"/>
                 <TextBlock x:Name="News_Actual_Title" TextWrapping="Wrap" FontSize="30" Foreground="White" FontWeight="Bold" FontFamily="Fonts/#Monserrat" Text="PATCH 1.0.0"/>
                 <TextBlock x:Name="News_Actual_SubTitle" TextWrapping="Wrap" FontSize="16" Foreground="#FF24FF00" FontWeight="Bold" FontFamily="Fonts/#Monserrat" Text="NOW AVAILABLE" Margin="0,0,0,5"/>
