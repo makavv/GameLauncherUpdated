@@ -9,6 +9,7 @@ using GameLauncher.Views;
 using GameLauncherCore;
 using Microsoft.VisualBasic.FileIO;
 using MyToolkit.Multimedia;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -194,7 +195,10 @@ namespace GameLauncher
 
         private void RunOnMainThread(InvokeDelegate function)
         {
-            Application.Current.Dispatcher.Invoke(new Action(() => { function(); }));
+            if (Application.Current != null)
+            {
+                Application.Current.Dispatcher.Invoke(new Action(() => { function(); }));
+            }
         }
 
         public void SingleInstanceCheck()
@@ -521,31 +525,26 @@ namespace GameLauncher
 
             // Load Games Local Info DB
             var gameListLocal = SettingsManager.LoadGamesInfo();
-            MessageBox.Show(gameListLocal[0].Title);
-            string content;
-            // Download game list from host
-           // if (Utility.CheckForInternetConnection())
-            content = await Utility.DownloadTextFileAsync(GAMES_LIST_URL);
-            //else
-          //   content = File.ReadAllText(Directory.GetCurrentDirectory()+ "/GameList.txt");
 
-            //MessageBox.Show(Directory.GetCurrentDirectory() + "/games.json");
+            // Download game list from host
+            string gameListFromHost = await Utility.DownloadTextFileAsync(GAMES_LIST_URL);
+
             // List of games to load
             var gamesListToLoad = new List<GameInfo>();
 
             // Check if we downloaded the game list from host
-            if (!string.IsNullOrEmpty(content))
+            if (!string.IsNullOrEmpty(gameListFromHost))
             {
                 GameList gameListHost = null;
 
                 try
                 {
                     // Deserialize JSON file and get the GameList from host
-                    gameListHost = JsonSerializer.Deserialize<GameList>(content, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                    gameListHost = System.Text.Json.JsonSerializer.Deserialize<GameList>(gameListFromHost, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
                 }
                 catch
                 {
-                    MessageBox.Show("Error deserializing GameList from Host. Please check if the GameList file content is valid.");
+                    MessageBox.Show("Error deserializing GameList from Host. Please check if the GameList file gameListFromHost is valid.");
                 }
 
 
@@ -565,7 +564,7 @@ namespace GameLauncher
                 // Load local game list
                 if (gameListLocal != null)
                 {
-                    gameListLocal = gamesListToLoad;
+                    gamesListToLoad = gameListLocal;
                 }
                 else
                 {
@@ -599,8 +598,6 @@ namespace GameLauncher
                         gameInfo.DefaultLanguage = gameInfoLocal.DefaultLanguage;
                         gameInfo.IsFavorite = gameInfoLocal.IsFavorite;
                         gameInfo.AdditionalLaunchArgs = gameInfoLocal.AdditionalLaunchArgs;
-                        gameInfo.LicenseKey = gameInfoLocal.LicenseKey;
-                        gameInfo.UseAdditionalLaunchArgs = gameInfoLocal.UseAdditionalLaunchArgs;
 
                     }
                 }
@@ -641,7 +638,11 @@ namespace GameLauncher
                 MessageBox.Show("No available games in host GameList");
             }
 
-            StartLauncherPatch();
+            // Check for updates only if we got the game list from host (internet access)
+            if (gameListFromHost != null)
+            {
+                StartLauncherPatch();
+            }
 
         }
 
@@ -781,21 +782,32 @@ namespace GameLauncher
                 Logo.Opacity = 0;
                 Icon_Blur.Opacity = 0;
 
-                BitmapImage bitmapImageLogo = new BitmapImage(new Uri(SelectedGame.LogoURL));
-                bitmapImageLogo.DownloadCompleted += (sender, e) =>
-                {
-                    Logo.CreateOpacityAnimation(0, 1, 1);
-                };
+
+                //BitmapImage bitmapImageLogo = new BitmapImage (new Uri (SelectedGame.LogoURL));
+                //bitmapImageLogo.DownloadCompleted += (sender, e) =>
+                //{
+                //    Logo.CreateOpacityAnimation (0, 1, 1);
+                //};
+
+                var bitmapImageLogo = Utility.LoadImage(SelectedGame.LogoURL);
 
                 Logo.Source = bitmapImageLogo;
+                Logo.CreateOpacityAnimation(0, 1, 1);
+
 
                 if (!string.IsNullOrEmpty(SelectedGame.IconURL))
                 {
-                    BitmapImage bitmapIconImage = new BitmapImage(new Uri(SelectedGame.IconURL));
-                    bitmapIconImage.DownloadCompleted += (sender, e) =>
-                    {
-                        Icon_Blur.CreateOpacityAnimation(0, 0.15f, 1);
-                    };
+                    //BitmapImage bitmapIconImage = new BitmapImage (new Uri (SelectedGame.IconURL));
+                    //bitmapIconImage.DownloadCompleted += (sender, e) =>
+                    //{
+                    //    Icon_Blur.CreateOpacityAnimation (0, 0.15f, 1);
+                    //};
+
+                    var bitmapIconImage = Utility.LoadImage(SelectedGame.IconURL);
+
+                    Icon_Blur.Source = bitmapIconImage;
+                    Icon_Blur.CreateOpacityAnimation(0, 0.15f, 1);
+
 
                     Icon_Blur.Source = bitmapIconImage;
                 }
@@ -823,6 +835,7 @@ namespace GameLauncher
                 gradientBrush.GradientStops.Add(new GradientStop(secondColor, 0.35));
                 gradientBrush.GradientStops.Add(new GradientStop(thirdColor, 1));
 
+                await Task.Delay(50);
                 Blur.Opacity = 1;
                 Background_Blur.CreateOpacityAnimation(0, 1, 1);
 
@@ -857,14 +870,21 @@ namespace GameLauncher
                 SetLauncherStatus(LauncherStatus.isLinkOnly);
                 return;
             }
-
-            if (SelectedGame.IsInstalled && (patcher.Result == PatchResult.AlreadyUpToDate || patcher.Result == PatchResult.Success))
+            if (!Utility.CheckForInternetConnection())
+            {
+                if(SelectedGame.IsInstalled)
+                    SetLauncherStatus(LauncherStatus.play);
+                else
+                    SetLauncherStatus(LauncherStatus.noInternet);
+            }
+            else if (SelectedGame.IsInstalled && (patcher.Result == PatchResult.AlreadyUpToDate || patcher.Result == PatchResult.Success))
             {
                 SetLauncherStatus(LauncherStatus.play);
 
             }
             else if (!SelectedGame.IsInstalled)
             {
+                
                 SetLauncherStatus(LauncherStatus.requireInstall);
             }
             else
@@ -972,6 +992,10 @@ namespace GameLauncher
                 else if (CurrentLauncherStatus == LauncherStatus.isLinkOnly)
                 {
                     PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_IsLinkOnly);
+                }                
+                else if (CurrentLauncherStatus == LauncherStatus.noInternet)
+                {
+                    PlayButtonText.Text = GameLauncherCore.Localization.Get(LocalizationID.MainUI_MainButtonState_IsLinkOnly);
                 }
 
                 // Links
@@ -1012,7 +1036,7 @@ namespace GameLauncher
         }
 
         /// <summary>
-        /// Sets the current launcher status, and hides other variables or content depending on the status
+        /// Sets the current launcher status, and hides other variables or gameListFromHost depending on the status
         /// </summary>
         /// <param name="status"></param>
         void SetLauncherStatus(LauncherStatus status)
@@ -1671,13 +1695,25 @@ namespace GameLauncher
 
             string url = NEWS_CURRENT_URL;
 
-            string content = await Utility.DownloadTextFileAsync(NEWS_CURRENT_URL);
+            string newsContentJSON = await Utility.DownloadTextFileAsync(NEWS_CURRENT_URL);
+
+            var newsJSONFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"news_{SelectedGame.Title}.json");
+
+            if (newsContentJSON == null)
+            {
+                //MessageBox.Show ("Failed to download news from host");
+
+                // Load news from local file
+                if (File.Exists(newsJSONFilePath))
+                {
+                    newsContentJSON = File.ReadAllText(newsJSONFilePath);
+                }
+            }
 
             // Deserialize JSON
-            if (!string.IsNullOrEmpty(content))
+            if (!string.IsNullOrEmpty(newsContentJSON))
             {
-                newsContent = JsonSerializer.Deserialize<NewsContent>(content, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-
+                newsContent = System.Text.Json.JsonSerializer.Deserialize<NewsContent>(newsContentJSON, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
                 // Update SlideShow
                 currentNewsElement = 0;
 
@@ -1772,6 +1808,11 @@ namespace GameLauncher
                 LoadingContent_ScrollViewer.Visibility = Visibility.Hidden;
                 Right_Panel.Visibility = Visibility.Visible;
                 sb.Stop();
+                // Save newsContentJSON to file
+
+                var json = JsonConvert.SerializeObject(newsContent, Formatting.Indented);
+
+                File.WriteAllText(newsJSONFilePath, json);
             }
             else // Error
             {
@@ -2636,5 +2677,6 @@ namespace GameLauncher
         readyToUpdate,
         requireInstall,
         isLinkOnly,
+        noInternet,
     }
 }

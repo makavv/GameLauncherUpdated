@@ -16,6 +16,7 @@ namespace GameLauncherCore
         MainUI_MainButtonState_ReadyToUpdate,
         MainUI_MainButtonState_Install,
         MainUI_MainButtonState_IsLinkOnly,
+        MainUI_MainButtonState_NoInternet,
         MainUI_RegionVersion,
         MainUI_Version,
 
@@ -342,6 +343,7 @@ namespace GameLauncherCore
             Strings[LocalizationID.MainUI_MainButtonState_ReadyToUpdate] = "Update";
             Strings[LocalizationID.MainUI_MainButtonState_Install] = "Install";
             Strings[LocalizationID.MainUI_MainButtonState_IsLinkOnly] = "Open";
+            Strings[LocalizationID.MainUI_MainButtonState_NoInternet] = "No Internet";
 
             // Leftside State
             Strings[LocalizationID.MainUI_RegionVersion] = "Region: {0} | Version: {1}";
@@ -527,6 +529,7 @@ namespace GameLauncherCore
             Strings[LocalizationID.MainUI_MainButtonState_ReadyToUpdate] = "Обновить";
             Strings[LocalizationID.MainUI_MainButtonState_Install] = "Установить";
             Strings[LocalizationID.MainUI_MainButtonState_IsLinkOnly] = "Открыть";
+            Strings[LocalizationID.MainUI_MainButtonState_NoInternet] = "Нет интернета :(";
 
             // Состояние левой панели
             Strings[LocalizationID.MainUI_RegionVersion] = "Регион: {0} | Версия: {1}";

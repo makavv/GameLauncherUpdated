@@ -115,6 +115,7 @@ namespace GameLauncher.Models
             // Cancel if the URL is null
             if (string.IsNullOrEmpty(URL))
             {
+                MessageBox.Show($"Empty URL");
                 return;
             }
 
@@ -212,16 +213,24 @@ namespace GameLauncher.Models
                     WebClient client = new WebClient();
                     client.DownloadDataCompleted += (s, args) =>
                     {
-                        byte[] imageBytes = args.Result;
-                        BitmapImage downloadedImage = new BitmapImage();
-                        using (MemoryStream stream = new MemoryStream(imageBytes))
+                        if (args.Error != null)
                         {
-                            downloadedImage.BeginInit();
-                            downloadedImage.CacheOption = BitmapCacheOption.OnLoad;
-                            downloadedImage.StreamSource = stream;
-                            downloadedImage.EndInit();
+                            image = new BitmapImage(new Uri("pack://application:,,,/Resources/Icons/Status/status_error.png"));
+                            return;
                         }
-                        ImageCache.AddImageToCache(imageUrl, imageBytes);
+                        else
+                        {
+                            byte[] imageBytes = args.Result;
+                            BitmapImage downloadedImage = new BitmapImage();
+                            using (MemoryStream stream = new MemoryStream(imageBytes))
+                            {
+                                downloadedImage.BeginInit();
+                                downloadedImage.CacheOption = BitmapCacheOption.OnLoad;
+                                downloadedImage.StreamSource = stream;
+                                downloadedImage.EndInit();
+                            }
+                            ImageCache.AddImageToCache(imageUrl, imageBytes);
+                        }
                     };
                     client.DownloadDataAsync(new Uri(imageUrl));
                 }
